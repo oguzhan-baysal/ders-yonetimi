@@ -1,15 +1,26 @@
-const mongoose = require('mongoose');
-const Enrollment = require('../models/Enrollment');
-const Student = require('../models/Student');
-const Course = require('../models/Course');
+import { Request, Response } from 'express';
+import mongoose from 'mongoose';
+import Enrollment from '../models/Enrollment';
+import Student from '../models/Student';
+import Course from '../models/Course';
+
+interface QueryParams {
+  page?: string;
+  limit?: string;
+}
+
+interface EnrollmentBody {
+  studentId: string;
+  courseId: string;
+}
 
 // @desc    Tüm kayıtları getir
 // @route   GET /api/enrollments
 // @access  Private/Admin
-const getEnrollments = async (req, res) => {
+export const getEnrollments = async (req: Request<{}, {}, {}, QueryParams>, res: Response): Promise<void> => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page || '1');
+    const limit = parseInt(req.query.limit || '10');
     const skip = (page - 1) * limit;
 
     const enrollments = await Enrollment.find()
@@ -28,14 +39,17 @@ const getEnrollments = async (req, res) => {
       total
     });
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ 
+      message: 'Sunucu hatası', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 };
 
 // @desc    Kayıt oluştur
 // @route   POST /api/enrollments
 // @access  Private/Admin
-const createEnrollment = async (req, res) => {
+export const createEnrollment = async (req: Request<{}, {}, EnrollmentBody>, res: Response): Promise<void> => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -48,18 +62,20 @@ const createEnrollment = async (req, res) => {
 
     if (!student || !course) {
       await session.abortTransaction();
-      return res.status(404).json({ 
+      res.status(404).json({ 
         message: !student ? 'Öğrenci bulunamadı' : 'Ders bulunamadı' 
       });
+      return;
     }
 
     // Kayıt zaten var mı kontrol et
     const existingEnrollment = await Enrollment.findOne({ studentId, courseId });
     if (existingEnrollment) {
       await session.abortTransaction();
-      return res.status(400).json({ 
+      res.status(400).json({ 
         message: 'Bu öğrenci zaten bu derse kayıtlı' 
       });
+      return;
     }
 
     const enrollment = await Enrollment.create([{
@@ -72,7 +88,10 @@ const createEnrollment = async (req, res) => {
     res.status(201).json(enrollment[0]);
   } catch (error) {
     await session.abortTransaction();
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ 
+      message: 'Sunucu hatası', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   } finally {
     session.endSession();
   }
@@ -81,7 +100,7 @@ const createEnrollment = async (req, res) => {
 // @desc    Kayıt sil
 // @route   DELETE /api/enrollments/:id
 // @access  Private/Admin
-const deleteEnrollment = async (req, res) => {
+export const deleteEnrollment = async (req: Request, res: Response): Promise<void> => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -90,7 +109,8 @@ const deleteEnrollment = async (req, res) => {
 
     if (!enrollment) {
       await session.abortTransaction();
-      return res.status(404).json({ message: 'Kayıt bulunamadı' });
+      res.status(404).json({ message: 'Kayıt bulunamadı' });
+      return;
     }
 
     await enrollment.deleteOne({ session });
@@ -99,7 +119,10 @@ const deleteEnrollment = async (req, res) => {
     res.json({ message: 'Kayıt başarıyla silindi' });
   } catch (error) {
     await session.abortTransaction();
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ 
+      message: 'Sunucu hatası', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   } finally {
     session.endSession();
   }
@@ -108,7 +131,7 @@ const deleteEnrollment = async (req, res) => {
 // @desc    Öğrencinin derslerini getir
 // @route   GET /api/students/:id/courses
 // @access  Private
-const getStudentCourses = async (req, res) => {
+export const getStudentCourses = async (req: Request, res: Response): Promise<void> => {
   try {
     const enrollments = await Enrollment.find({ studentId: req.params.id })
       .populate('courseId', 'name description')
@@ -116,14 +139,17 @@ const getStudentCourses = async (req, res) => {
 
     res.json(enrollments);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ 
+      message: 'Sunucu hatası', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 };
 
 // @desc    Dersin öğrencilerini getir
 // @route   GET /api/courses/:id/students
 // @access  Private
-const getCourseStudents = async (req, res) => {
+export const getCourseStudents = async (req: Request, res: Response): Promise<void> => {
   try {
     const enrollments = await Enrollment.find({ courseId: req.params.id })
       .populate({
@@ -138,14 +164,9 @@ const getCourseStudents = async (req, res) => {
 
     res.json(enrollments);
   } catch (error) {
-    res.status(500).json({ message: 'Sunucu hatası', error: error.message });
+    res.status(500).json({ 
+      message: 'Sunucu hatası', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
-};
-
-module.exports = {
-  getEnrollments,
-  createEnrollment,
-  deleteEnrollment,
-  getStudentCourses,
-  getCourseStudents
 }; 

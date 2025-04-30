@@ -1,4 +1,19 @@
-const mongoose = require('mongoose');
+import mongoose, { Document, Model } from 'mongoose';
+import { IUser } from './User';
+
+export interface IStudent extends Document {
+  userId: IUser['_id'];
+  firstName: string;
+  lastName: string;
+  birthDate: Date;
+  fullName: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface IStudentModel extends Model<IStudent> {
+  // Model statik metodları buraya eklenebilir
+}
 
 const studentSchema = new mongoose.Schema({
   userId: {
@@ -25,7 +40,7 @@ const studentSchema = new mongoose.Schema({
 });
 
 // Tam isim için virtual field
-studentSchema.virtual('fullName').get(function() {
+studentSchema.virtual('fullName').get(function(this: IStudent): string {
   return `${this.firstName} ${this.lastName}`;
 });
 
@@ -33,4 +48,6 @@ studentSchema.virtual('fullName').get(function() {
 studentSchema.set('toJSON', { virtuals: true });
 studentSchema.set('toObject', { virtuals: true });
 
-module.exports = mongoose.model('Student', studentSchema); 
+const Student = mongoose.model<IStudent, IStudentModel>('Student', studentSchema);
+
+export default Student; 

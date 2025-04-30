@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { register, login, logout, getMe } from '../controllers/authController';
+import { protect } from '../middleware/auth';
+import { body } from 'express-validator';
+import { validate } from '../middleware/validate';
+
 const router = express.Router();
-const { register, login, getMe } = require('../controllers/authController');
-const { protect } = require('../middleware/auth');
-const { body } = require('express-validator');
-const validate = require('../middleware/validate');
 
 // Validasyon kuralları
 const registerValidation = [
@@ -25,6 +26,7 @@ const loginValidation = [
 
 router.post('/register', registerValidation, validate, register);
 router.post('/login', loginValidation, validate, login);
+router.post('/logout', logout);
 router.get('/me', protect, getMe);
 
-module.exports = router; 
+export default router; 

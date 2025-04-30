@@ -1,0 +1,39 @@
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import { connectDB } from './config/db';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth';
+import studentRoutes from './routes/students';
+import courseRoutes from './routes/courses';
+import enrollmentRoutes from './routes/enrollments';
+
+dotenv.config();
+
+// Express uygulamasını oluştur
+const app = express();
+
+// Middleware'leri ekle
+app.use(cors());
+app.use(express.json());
+
+// MongoDB'ye bağlan
+connectDB();
+
+// Route'ları tanımla
+app.use('/api/auth', authRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ message: 'Sayfa bulunamadı' });
+});
+
+// Error handler
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Sunucu hatası', error: err.message });
+});
+
+export default app; 
