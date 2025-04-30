@@ -1,0 +1,128 @@
+Öğrenci ve Ders Yönetimi Uygulaması - To-Do Listesi
+Aşağıda PRD dokümanına göre hazırlanmış, bir full-stack developer için sıralı to-do listesi bulunmaktadır: (PowerShell'de komutları ayrı ayrı çalıştır.)
+1. Proje Kurulumu ve Altyapı
+
+ Temel proje yapısını oluştur (backend ve frontend klasörleri)
+ Node.js (Express.js) kurulumu ve temel yapılandırması
+ React.js kurulumu ve başlangıç yapılandırması
+ MongoDB kurulumu ve bağlantı konfigürasyonu
+ Docker ve Docker Compose dosyalarını oluştur
+ .env dosyaları ve konfigürasyon yapısını oluştur
+ ESLint ve Prettier kurulumu ve yapılandırması
+ Mongoose için şema ve model yapılarını oluştur (users, students, courses, enrollments)
+ MongoDB indekslemelerini yapılandır
+
+2. Backend Geliştirme
+2.1 Kimlik Doğrulama ve Yetkilendirme
+
+ JWT implementasyonu ve konfigürasyonu
+ Kullanıcı kayıt endpoint'i (/api/auth/register)
+ Kullanıcı giriş endpoint'i (/api/auth/login)
+ Kullanıcı çıkış endpoint'i (/api/auth/logout)
+ Mevcut kullanıcı bilgisi endpoint'i (/api/auth/me)
+ Şifre hashleme (bcrypt) implementasyonu
+ Middleware: Yetkilendirme kontrolü (admin/öğrenci)
+
+2.2 Öğrenci Yönetimi
+
+ Öğrenci listeleme endpoint'i (GET /api/students)
+ Öğrenci detay endpoint'i (GET /api/students/)
+ Öğrenci ekleme endpoint'i (POST /api/students)
+ Öğrenci güncelleme endpoint'i (PUT /api/students/)
+ Öğrenci silme endpoint'i (DELETE /api/students/)
+ MongoDB transaction ile cascade silme işlemleri
+
+2.3 Ders Yönetimi
+
+ Ders listeleme endpoint'i (GET /api/courses)
+ Ders detay endpoint'i (GET /api/courses/)
+ Ders ekleme endpoint'i (POST /api/courses)
+ Ders güncelleme endpoint'i (PUT /api/courses/)
+ Ders silme endpoint'i (DELETE /api/courses/)
+ Unique index kontrolü implementasyonu
+
+2.4 Kayıt (Enrollment) Yönetimi
+
+ Tüm kayıtları listeleme endpoint'i (GET /api/enrollments)
+ Kayıt ekleme endpoint'i (POST /api/enrollments)
+ Kayıt silme endpoint'i (DELETE /api/enrollments/)
+ Öğrencinin derslerini listeleme endpoint'i (GET /api/students//courses)
+ Dersin öğrencilerini listeleme endpoint'i (GET /api/courses//students)
+ MongoDB $lookup implementasyonu
+
+3. Frontend Geliştirme
+3.1 Genel ve Paylaşılan Bileşenler
+
+ Redux Toolkit kurulumu ve store yapılandırması
+ Axios ile API servis yapısını kur
+ Form validasyon için Formik ve Yup konfigürasyonu
+ Layout düzeni ve stil temalarını oluştur
+ NavBar bileşeni
+ Sayfalama (pagination) bileşeni
+ Modal/Popup bileşenleri (detay görüntüleme, onay kutucukları)
+ Tablo bileşeni (sortable, filterable)
+ Form bileşenleri (input, select, date, vb.)
+ Toast/notification bileşeni
+
+3.2 Sayfa ve Modülleri Oluşturma
+
+ Giriş sayfası ve formu
+ Dashboard sayfası (özet bilgiler)
+ Öğrenci listesi sayfası ve CRUD işlemleri
+ Öğrenci detay modalı
+ Ders listesi sayfası ve CRUD işlemleri
+ Ders detay modalı
+ Kayıt yönetimi sayfası (öğrenci-ders eşleştirme)
+ Öğrenci profil sayfası
+ Yeni ders kayıt etme sayfası
+ Kayıtlı dersler listeleme sayfası
+
+3.3 Kullanıcı Rolleri ve Yetkilendirme
+
+ Role tabanlı routing sistemi
+ Yetkisiz erişimleri engelleme
+ Rol bazlı UI elemanlarını gösterme/gizleme
+
+4. Test ve Dokümantasyon
+4.1 Backend Testleri
+
+ Jest kurulumu ve konfigürasyonu
+ MongoDB in-memory test veritabanı kurulumu
+ Auth API için entegrasyon testleri
+ Student API için birim ve entegrasyon testleri
+ Course API için birim ve entegrasyon testleri
+ Enrollment API için birim ve entegrasyon testleri
+
+4.2 Frontend Testleri
+
+ React Testing Library kurulumu
+ Komponent testleri
+ Redux store testleri
+ Form validasyon testleri
+
+4.3 Dokümantasyon
+
+ Swagger/OpenAPI ile API dokümantasyonu
+ README.md oluşturma
+ Kurulum ve çalıştırma talimatları
+ MongoDB şema açıklaması ve indeks stratejisi
+ Kod içi yorum ve JSDoc formatında dokümantasyon
+
+5. Deployment ve Optimizasyon
+
+ MongoDB indeks optimizasyonu
+ API yanıt süresi optimizasyonu
+ Frontend code splitting ve lazy loading
+ Docker image optimizasyonu
+ Environment değişkenleri ile konfigürasyon
+ Logging mekanizması kurulumu
+ Error handling geliştirmeleri
+ Güvenlik kontrolleri (XSS, CSRF, input sanitization)
+
+6. Proje Tamamlama
+
+ Son hata kontrolü ve düzeltmeler
+ Kod kalitesi kontrolü
+ Son performans testleri
+ Dokümantasyon tamamlama
+ GitHub'a kod push ve README güncellemesi
