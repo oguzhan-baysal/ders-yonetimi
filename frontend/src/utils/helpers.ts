@@ -1,14 +1,27 @@
-// Tarih formatlamak için
-export const formatDate = (date: string): string => {
-  return new Date(date).toLocaleDateString('tr-TR');
-};
+import { ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-// Form hata mesajlarını formatlamak için
-export const formatValidationError = (error: any): string => {
-  if (typeof error === 'string') return error;
-  if (Array.isArray(error)) return error[0].message;
-  return 'Bir hata oluştu';
-};
+// Tailwind sınıflarını birleştirmek için yardımcı fonksiyon
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+// Hata mesajlarını formatlamak için yardımcı fonksiyon
+export function handleApiError(error: any): string {
+  if (error.response?.data?.message) {
+    return error.response.data.message;
+  }
+  return error.message || 'Bir hata oluştu';
+}
+
+// Tarih formatlamak için yardımcı fonksiyon
+export function formatDate(date: string | Date): string {
+  return new Date(date).toLocaleDateString('tr-TR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 // Token'dan kullanıcı bilgilerini çıkarmak için
 export const getTokenData = () => {

@@ -74,25 +74,25 @@ const createCourse = async (req, res) => {
 const updateCourse = async (req, res) => {
   try {
     const { name, description } = req.body;
-
     const course = await Course.findById(req.params.id);
 
-    if (course) {
-      if (name && name !== course.name) {
-        const courseExists = await Course.findOne({ name });
-        if (courseExists) {
-          return res.status(400).json({ message: 'Bu isimde bir ders zaten var' });
-        }
-      }
-
-      course.name = name || course.name;
-      course.description = description || course.description;
-
-      const updatedCourse = await course.save();
-      res.json(updatedCourse);
-    } else {
-      res.status(404).json({ message: 'Ders bulunamadı' });
+    if (!course) {
+      return res.status(404).json({ message: 'Ders bulunamadı' });
     }
+
+    // Eğer isim değişiyorsa, yeni isimde başka bir ders var mı kontrol et
+    if (name !== course.name) {
+      const courseExists = await Course.findOne({ name });
+      if (courseExists) {
+        return res.status(400).json({ message: 'Bu isimde bir ders zaten var' });
+      }
+    }
+
+    course.name = name;
+    course.description = description;
+
+    const updatedCourse = await course.save();
+    res.json(updatedCourse);
   } catch (error) {
     res.status(500).json({ message: 'Sunucu hatası', error: error.message });
   }

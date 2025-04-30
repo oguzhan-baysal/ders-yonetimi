@@ -5,9 +5,9 @@ const {
   getCourseById,
   createCourse,
   updateCourse,
-  deleteCourse,
-  getCourseStudents
+  deleteCourse
 } = require('../controllers/courseController');
+const { getCourseStudents } = require('../controllers/enrollmentController');
 const { protect, admin } = require('../middleware/auth');
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
@@ -18,6 +18,7 @@ const courseValidation = [
   body('description').trim().notEmpty().withMessage('Ders açıklaması zorunludur')
 ];
 
+// Ana rotalar
 router.route('/')
   .get(protect, getCourses)
   .post(protect, admin, courseValidation, validate, createCourse);
@@ -27,6 +28,7 @@ router.route('/:id')
   .put(protect, admin, courseValidation, validate, updateCourse)
   .delete(protect, admin, deleteCourse);
 
+// Dersin öğrencilerini getir
 router.get('/:id/students', protect, admin, getCourseStudents);
 
 module.exports = router; 

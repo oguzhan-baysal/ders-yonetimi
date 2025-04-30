@@ -1,9 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import authReducer from '../features/auth/authSlice';
+import studentReducer from '../features/students/studentSlice';
+import courseReducer from '../features/courses/courseSlice';
 
 export const store = configureStore({
   reducer: {
-    // Reducerlar buraya eklenecek
+    auth: authReducer,
+    students: studentReducer,
+    courses: courseReducer,
   },
 });
 
