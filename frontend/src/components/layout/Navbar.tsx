@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,9 +34,9 @@ const Navbar = () => {
     router.push('/auth/login');
   };
 
-  const handleLogout = () => {
-    logout();
-    router.push('/');
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/');
   };
 
   if (!mounted) {
@@ -76,8 +76,7 @@ const Navbar = () => {
             {!isAuthenticated ? (
               <Button
                 onClick={handleLogin}
-                variant="default"
-                size="default"
+                variant="primary"
                 className="bg-indigo-600 hover:bg-indigo-500 text-white"
               >
                 Giriş Yap
@@ -85,8 +84,7 @@ const Navbar = () => {
             ) : (
               <Button
                 onClick={handleLogout}
-                variant="default"
-                size="default"
+                variant="danger"
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Çıkış Yap

@@ -19,30 +19,38 @@ export const protect = async (
 ): Promise<void> => {
   let token: string | undefined;
 
+  console.log('Auth Headers:', req.headers.authorization);
+
   if (req.headers.authorization?.startsWith('Bearer')) {
     try {
       // Token'ı al
       token = req.headers.authorization.split(' ')[1];
+      console.log('Extracted Token:', token);
 
       // Token'ı doğrula
       const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as jwt.JwtPayload;
+      console.log('Decoded Token:', decoded);
 
       // Kullanıcıyı bul ve request'e ekle (şifre hariç)
       const user = await User.findById(decoded.id).select('-password');
       if (!user) {
+        console.log('User not found for id:', decoded.id);
         res.status(401).json({ message: 'Kullanıcı bulunamadı' });
         return;
       }
+      console.log('Found User:', user);
       req.user = user as IUser;
 
       next();
     } catch (error) {
+      console.error('Auth Error:', error);
       res.status(401).json({ message: 'Yetkilendirme başarısız' });
       return;
     }
   }
 
   if (!token) {
+    console.log('No token found in request');
     res.status(401).json({ message: 'Token bulunamadı' });
     return;
   }

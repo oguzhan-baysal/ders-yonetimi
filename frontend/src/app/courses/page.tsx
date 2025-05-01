@@ -2,19 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
-import { studentService, Student } from '@/services/studentService';
+import { courseService } from '@/services/courseService';
+import type { Course } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import Link from 'next/link';
 
-const StudentsPage = () => {
+const CoursesPage = () => {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
-  const [students, setStudents] = useState<Student[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,46 +27,37 @@ const StudentsPage = () => {
       return;
     }
 
-    if (user?.role !== 'admin') {
-      router.push('/dashboard');
-      return;
-    }
+    fetchCourses();
+  }, [isAuthenticated, router, currentPage, searchTerm]);
 
-    fetchStudents();
-  }, [isAuthenticated, user, router, currentPage, searchTerm]);
-
-  const fetchStudents = async () => {
+  const fetchCourses = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await studentService.getAllStudents({
+      const response = await courseService.getAllCourses({
         page: currentPage,
         limit: itemsPerPage,
         search: searchTerm
       });
       
-      setStudents(response.students);
+      setCourses(response.courses);
       setTotalPages(response.pages);
     } catch (err) {
-      setError('Öğrenci listesi yüklenirken bir hata oluştu.');
-      console.error('Error fetching students:', err);
+      setError('Ders listesi yüklenirken bir hata oluştu.');
+      console.error('Error fetching courses:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Bu öğrenciyi silmek istediğinizden emin misiniz?')) {
+    if (window.confirm('Bu dersi silmek istediğinizden emin misiniz?')) {
       try {
-        const success = await studentService.deleteStudent(id);
-        if (success) {
-          toast.success('Öğrenci başarıyla silindi.');
-          fetchStudents();
-        } else {
-          toast.error('Öğrenci silinirken bir hata oluştu.');
-        }
+        await courseService.deleteCourse(id);
+        toast.success('Ders başarıyla silindi.');
+        fetchCourses();
       } catch (error) {
-        toast.error('Öğrenci silinirken bir hata oluştu.');
+        toast.error('Ders silinirken bir hata oluştu.');
       }
     }
   };
@@ -91,19 +81,22 @@ const StudentsPage = () => {
     );
   }
 
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return null;
-  }
-
   return (
     <Layout>
       <div className="container mx-auto py-8 px-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Öğrenci Listesi</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Ders Listesi</h1>
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            {user?.role === 'admin' && (
+              <Link href="/courses/new">
+                <Button variant="primary" size="sm">
+                  Yeni Ders Oluştur
+                </Button>
+              </Link>
+            )}
             <input
               type="text"
-              placeholder="Öğrenci ara..."
+              placeholder="Ders ara..."
               value={searchTerm}
               onChange={handleSearch}
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -122,60 +115,63 @@ const StudentsPage = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Öğrenci No
+                  Ders Kodu
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ad Soyad
+                  Ders Adı
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  E-posta
+                  Açıklama
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Doğum Tarihi
+                  Kredi
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bölüm
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  İşlemler
-                </th>
+                {user?.role === 'admin' && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    İşlemler
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
-              {students.map((student) => (
-                <tr key={student._id} className="hover:bg-gray-50">
+              {courses.map((course) => (
+                <tr key={course._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {student.studentNumber}
+                    {course.code}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {student.firstName} {student.lastName}
+                    {course.name}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {course.description}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {student.email}
+                    {course.credits}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {format(new Date(student.birthDate), 'dd MMMM yyyy', { locale: tr })}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {student.department}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleDelete(student._id)}
-                      >
-                        Sil
-                      </Button>
-                    </div>
-                  </td>
+                  {user?.role === 'admin' && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex gap-2">
+                        <Link href={`/courses/${course._id}/edit`}>
+                          <Button variant="secondary" size="sm">
+                            Düzenle
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDelete(course._id)}
+                        >
+                          Sil
+                        </Button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
-              {students.length === 0 && (
+              {courses.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                    Kayıtlı öğrenci bulunamadı.
+                  <td colSpan={user?.role === 'admin' ? 5 : 4} className="px-6 py-4 text-center text-gray-500">
+                    Kayıtlı ders bulunamadı.
                   </td>
                 </tr>
               )}
@@ -211,4 +207,4 @@ const StudentsPage = () => {
   );
 };
 
-export default StudentsPage; 
+export default CoursesPage; 

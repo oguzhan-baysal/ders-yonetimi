@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Layout from '@/components/layout/Layout';
-import authService, { RegisterData } from '@/services/authService';
+import authService from '@/services/authService';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -212,13 +212,16 @@ export default function RegisterPage() {
               )}
 
               {errors.submit && (
-                <div className="text-sm text-red-600">{errors.submit}</div>
+                <div className="text-red-600 text-sm mt-2">
+                  {errors.submit}
+                </div>
               )}
 
               <Button
                 type="submit"
-                className="w-full"
+                variant="primary"
                 isLoading={isLoading}
+                className="w-full"
               >
                 Kayıt Ol
               </Button>

@@ -7,12 +7,12 @@ export function middleware(request: NextRequest) {
   const isPublicPage = request.nextUrl.pathname === '/';
 
   // Kullanıcı giriş yapmışsa ve auth sayfalarına erişmeye çalışıyorsa
-  if (token && (isAuthPage || isPublicPage)) {
+  if (token && isAuthPage) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Kullanıcı giriş yapmamışsa ve korumalı sayfalara erişmeye çalışıyorsa
-  if (!token && !isAuthPage && !isPublicPage) {
+  if (!token && !isAuthPage && !isPublicPage && request.nextUrl.pathname !== '/') {
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 

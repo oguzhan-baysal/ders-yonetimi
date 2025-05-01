@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
 import Layout from '@/components/layout/Layout';
 import authService from '@/services/authService';
 import { useAuth } from '@/hooks/useAuth';

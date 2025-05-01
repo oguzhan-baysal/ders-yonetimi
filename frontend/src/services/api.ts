@@ -2,7 +2,7 @@ import axios from 'axios';
 import { handleApiError } from '../utils/helpers';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+  baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,15 +24,26 @@ api.interceptors.request.use(
 
 // Response interceptor - Hata yönetimi
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    // API yanıtını doğrudan response.data olarak dön
+    return response.data;
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
     }
     return Promise.reject(handleApiError(error));
   }
 );
+
+// Generic tip desteği eklenmiş metodlar
+const apiWithTypes = {
+  get: <T>(url: string, config?: any) => api.get<T, T>(url, config),
+  post: <T>(url: string, data?: any, config?: any) => api.post<T, T>(url, data, config),
+  put: <T>(url: string, data?: any, config?: any) => api.put<T, T>(url, data, config),
+  delete: <T>(url: string, config?: any) => api.delete<T, T>(url, config),
+};
 
 // Auth endpoints
 export const authApi = {
@@ -43,7 +54,7 @@ export const authApi = {
   me: () => api.get('/auth/me'),
   logout: () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    window.location.href = '/auth/login';
   }
 };
 
@@ -78,4 +89,4 @@ export const enrollmentApi = {
   delete: (id: string) => api.delete(`/enrollments/${id}`)
 };
 
-export default api; 
+export default apiWithTypes; 

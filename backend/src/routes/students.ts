@@ -11,6 +11,12 @@ import { protect, authorize } from '../middleware/auth';
 
 const router = express.Router();
 
+// Log middleware
+router.use((req, res, next) => {
+  console.log(`[Students API] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Tüm route'lar için authentication gerekli
 router.use(protect);
 

@@ -1,10 +1,21 @@
 import { Request, Response } from 'express';
 import Course, { ICourse } from '../models/Course';
 import Enrollment from '../models/Enrollment';
+import mongoose from 'mongoose';
 
 interface QueryParams {
   page?: string;
   limit?: string;
+  search?: string;
+}
+
+interface CourseBody {
+  code: string;
+  name: string;
+  description: string;
+  credits: number;
+  department?: string;
+  semester?: string;
 }
 
 // @desc    Tüm dersleri getir
@@ -16,18 +27,30 @@ export const getCourses = async (req: Request<{}, {}, {}, QueryParams>, res: Res
     const limit = parseInt(req.query.limit || '10');
     const skip = (page - 1) * limit;
 
-    const courses = await Course.find()
+    // Arama ve filtreleme
+    const search = req.query.search || '';
+    const filter: any = {};
+    
+    if (search) {
+      filter.$or = [
+        { code: { $regex: search, $options: 'i' } },
+        { name: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const courses = await Course.find(filter)
       .skip(skip)
       .limit(limit)
-      .sort({ name: 1 });
+      .sort({ code: 1 });
 
-    const total = await Course.countDocuments();
+    const total = await Course.countDocuments(filter);
 
     res.json({
       courses,
       page,
       pages: Math.ceil(total / limit),
-      total
+      total,
+      hasMore: page * limit < total
     });
   } catch (error) {
     res.status(500).json({ 
@@ -42,6 +65,11 @@ export const getCourses = async (req: Request<{}, {}, {}, QueryParams>, res: Res
 // @access  Private
 export const getCourseById = async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(400).json({ message: 'Geçersiz ders ID' });
+      return;
+    }
+
     const course = await Course.findById(req.params.id);
 
     if (course) {
@@ -57,27 +85,27 @@ export const getCourseById = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-interface CourseBody {
-  name: string;
-  description: string;
-}
-
 // @desc    Yeni ders oluştur
 // @route   POST /api/courses
 // @access  Private/Admin
 export const createCourse = async (req: Request<{}, {}, CourseBody>, res: Response): Promise<void> => {
   try {
-    const { name, description } = req.body;
+    const { code, name, description, credits, department, semester } = req.body;
 
-    const courseExists = await Course.findOne({ name });
+    // Ders kodu kontrolü
+    const courseExists = await Course.findOne({ code });
     if (courseExists) {
-      res.status(400).json({ message: 'Bu isimde bir ders zaten var' });
+      res.status(400).json({ message: 'Bu ders kodu zaten kullanılıyor' });
       return;
     }
 
     const course = await Course.create({
+      code,
       name,
-      description
+      description,
+      credits,
+      department,
+      semester
     });
 
     res.status(201).json(course);
@@ -94,7 +122,12 @@ export const createCourse = async (req: Request<{}, {}, CourseBody>, res: Respon
 // @access  Private/Admin
 export const updateCourse = async (req: Request<{ id: string }, {}, CourseBody>, res: Response): Promise<void> => {
   try {
-    const { name, description } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(400).json({ message: 'Geçersiz ders ID' });
+      return;
+    }
+
+    const { code, name, description, credits, department, semester } = req.body;
     const course = await Course.findById(req.params.id);
 
     if (!course) {
@@ -102,17 +135,21 @@ export const updateCourse = async (req: Request<{ id: string }, {}, CourseBody>,
       return;
     }
 
-    // Eğer isim değişiyorsa, yeni isimde başka bir ders var mı kontrol et
-    if (name !== course.name) {
-      const courseExists = await Course.findOne({ name });
+    // Ders kodu değişiyorsa, yeni kodda başka bir ders var mı kontrol et
+    if (code !== course.code) {
+      const courseExists = await Course.findOne({ code });
       if (courseExists) {
-        res.status(400).json({ message: 'Bu isimde bir ders zaten var' });
+        res.status(400).json({ message: 'Bu ders kodu zaten kullanılıyor' });
         return;
       }
     }
 
+    course.code = code;
     course.name = name;
     course.description = description;
+    course.credits = credits;
+    if (department) course.department = department;
+    if (semester) course.semester = semester;
 
     const updatedCourse = await course.save();
     res.json(updatedCourse);
@@ -129,6 +166,11 @@ export const updateCourse = async (req: Request<{ id: string }, {}, CourseBody>,
 // @access  Private/Admin
 export const deleteCourse = async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(400).json({ message: 'Geçersiz ders ID' });
+      return;
+    }
+
     const course = await Course.findById(req.params.id);
 
     if (course) {
@@ -138,7 +180,7 @@ export const deleteCourse = async (req: Request, res: Response): Promise<void> =
       // Dersi sil
       await course.deleteOne();
       
-      res.json({ message: 'Ders silindi' });
+      res.json({ message: 'Ders başarıyla silindi' });
     } else {
       res.status(404).json({ message: 'Ders bulunamadı' });
     }
@@ -155,6 +197,11 @@ export const deleteCourse = async (req: Request, res: Response): Promise<void> =
 // @access  Private/Admin
 export const getCourseStudents = async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(400).json({ message: 'Geçersiz ders ID' });
+      return;
+    }
+
     const enrollments = await Enrollment.find({ courseId: req.params.id })
       .populate({
         path: 'studentId',

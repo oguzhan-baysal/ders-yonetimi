@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
 import Student from '../models/Student';
 import User from '../models/User';
 import Enrollment from '../models/Enrollment';
 import mongoose from 'mongoose';
+import { Request, Response } from 'express';
 
 interface QueryParams {
   page?: string;
@@ -19,14 +19,14 @@ interface StudentBody {
 // @desc    Tüm öğrencileri getir
 // @route   GET /api/students
 // @access  Private/Admin
-export const getStudents = async (req: Request<{}, {}, {}, QueryParams>, res: Response): Promise<void> => {
+export const getStudents = async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page || '1');
-    const limit = parseInt(req.query.limit || '10');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
     // Arama ve filtreleme
-    const search = req.query.search || '';
+    const search = req.query.search as string || '';
     const filter: any = {};
     
     if (search) {
@@ -36,26 +36,45 @@ export const getStudents = async (req: Request<{}, {}, {}, QueryParams>, res: Re
       ];
     }
 
+    // Öğrenci bilgilerini ve ilişkili kullanıcı bilgilerini tek sorguda getir
     const students = await Student.find(filter)
-      .populate('userId', 'username email')
+      .populate({
+        path: 'userId',
+        select: 'username email role',
+        match: { role: 'student' }
+      })
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
 
+    // Sadece geçerli kullanıcı ilişkisi olan öğrencileri filtrele
+    const validStudents = students.filter(student => student.userId);
+
+    // Toplam sayıyı bul
     const total = await Student.countDocuments(filter);
 
-    res.json({
-      students,
+    const response = {
+      students: validStudents.map(student => ({
+        _id: student._id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.userId?.email || '',
+        birthDate: student.birthDate,
+        studentNumber: student.userId?.username || '',
+        department: 'Bilgisayar Mühendisliği' // Varsayılan değer
+      })),
       page,
       pages: Math.ceil(total / limit),
       total,
       hasMore: page * limit < total
-    });
-  } catch (error) {
+    };
+
+    res.json(response);
+  } catch (error: unknown) {
     console.error('Get Students Error:', error);
     res.status(500).json({ 
       message: 'Öğrenciler listelenirken bir hata oluştu',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined
+      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Bilinmeyen hata' : undefined
     });
   }
 };
@@ -79,11 +98,11 @@ export const getStudentById = async (req: Request, res: Response): Promise<void>
     }
 
     res.json(student);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Get Student Error:', error);
     res.status(500).json({ 
       message: 'Öğrenci bilgileri alınırken bir hata oluştu',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined
+      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Bilinmeyen hata' : undefined
     });
   }
 };
@@ -106,12 +125,12 @@ export const createStudent = async (req: Request<{}, {}, StudentBody>, res: Resp
 
     await session.commitTransaction();
     res.status(201).json(student[0]);
-  } catch (error) {
+  } catch (error: unknown) {
     await session.abortTransaction();
     console.error('Create Student Error:', error);
     res.status(500).json({ 
       message: 'Öğrenci oluşturulurken bir hata oluştu',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined
+      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Bilinmeyen hata' : undefined
     });
   } finally {
     session.endSession();
@@ -150,11 +169,11 @@ export const updateStudent = async (req: Request<{ id: string }, {}, StudentBody
     const updatedStudent = await student.save();
     
     res.json(updatedStudent);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Update Student Error:', error);
     res.status(500).json({ 
       message: 'Öğrenci güncellenirken bir hata oluştu',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined
+      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Bilinmeyen hata' : undefined
     });
   }
 };
@@ -187,12 +206,12 @@ export const deleteStudent = async (req: Request, res: Response): Promise<void> 
     await session.commitTransaction();
     
     res.json({ message: 'Öğrenci başarıyla silindi' });
-  } catch (error) {
+  } catch (error: unknown) {
     await session.abortTransaction();
     console.error('Delete Student Error:', error);
     res.status(500).json({ 
       message: 'Öğrenci silinirken bir hata oluştu',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined
+      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Bilinmeyen hata' : undefined
     });
   } finally {
     session.endSession();
@@ -219,11 +238,11 @@ export const getStudentCourses = async (req: Request, res: Response): Promise<vo
       .populate('courseId', 'name description');
 
     res.json(enrollments);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Get Student Courses Error:', error);
     res.status(500).json({ 
       message: 'Öğrenci dersleri listelenirken bir hata oluştu',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined
+      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Bilinmeyen hata' : undefined
     });
   }
 }; 

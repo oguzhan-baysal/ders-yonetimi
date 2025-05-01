@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import api from './api';
 
 export interface RegisterData {
   username: string;
@@ -32,23 +30,38 @@ export interface AuthResponse {
 
 const authService = {
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/register`, data);
-    if (response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data));
+    try {
+      const response = await api.post<AuthResponse>('/auth/register', data);
+      const responseData = response as unknown as AuthResponse;
+      if (responseData && responseData.token) {
+        localStorage.setItem('user', JSON.stringify(responseData));
+        localStorage.setItem('token', responseData.token);
+      }
+      return responseData;
+    } catch (error) {
+      console.error('Register error:', error);
+      throw error;
     }
-    return response.data;
   },
 
   async login(data: LoginData): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/login`, data);
-    if (response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data));
+    try {
+      const response = await api.post<AuthResponse>('/auth/login', data);
+      const responseData = response as unknown as AuthResponse;
+      if (responseData && responseData.token) {
+        localStorage.setItem('user', JSON.stringify(responseData));
+        localStorage.setItem('token', responseData.token);
+      }
+      return responseData;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    return response.data;
   },
 
   logout(): void {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   },
 
   getCurrentUser(): AuthResponse | null {
@@ -60,17 +73,8 @@ const authService = {
   },
 
   async getMe(): Promise<AuthResponse> {
-    const user = this.getCurrentUser();
-    if (!user) {
-      throw new Error('Kullanıcı girişi yapılmamış');
-    }
-
-    const response = await axios.get(`${API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    });
-    return response.data;
+    const response = await api.get<AuthResponse>('/auth/me');
+    return response as unknown as AuthResponse;
   },
 };
 
