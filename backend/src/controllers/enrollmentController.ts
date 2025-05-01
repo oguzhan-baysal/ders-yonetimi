@@ -24,10 +24,17 @@ export const getEnrollments = async (req: Request<{}, {}, {}, QueryParams>, res:
     const skip = (page - 1) * limit;
 
     const enrollments = await Enrollment.find()
-      .populate('studentId', 'firstName lastName')
-      .populate('courseId', 'name')
+      .populate({
+        path: 'studentId',
+        select: 'firstName lastName studentNumber email'
+      })
+      .populate({
+        path: 'courseId',
+        select: 'code name instructor credits department'
+      })
       .skip(skip)
       .limit(limit)
+      .lean()
       .sort({ enrollmentDate: -1 });
 
     const total = await Enrollment.countDocuments();

@@ -32,8 +32,11 @@ const CoursesPage = () => {
     }
 
     fetchCourses();
-    fetchEnrollments();
-  }, [isAuthenticated, router, currentPage, searchTerm]);
+    // Sadece öğrenci rolü için enrollment'ları getir
+    if (user?.role !== 'admin') {
+      fetchEnrollments();
+    }
+  }, [isAuthenticated, router, currentPage, searchTerm, user?.role]);
 
   const fetchEnrollments = async () => {
     try {

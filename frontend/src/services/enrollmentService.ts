@@ -12,6 +12,12 @@ export interface Enrollment {
     instructor: string;
     capacity: number;
   };
+  student?: {
+    _id: string;
+    name: string;
+    email: string;
+    studentNumber: string;
+  };
 }
 
 export interface CreateEnrollmentDTO {
@@ -20,6 +26,11 @@ export interface CreateEnrollmentDTO {
 
 class EnrollmentService {
   private readonly baseUrl = '/enrollments';
+
+  async getAllEnrollments(): Promise<Enrollment[]> {
+    const response = await api.get<{ enrollments: Enrollment[] }>(this.baseUrl);
+    return response.enrollments;
+  }
 
   async getEnrollments(): Promise<Enrollment[]> {
     const response = await api.get<Enrollment[]>(this.baseUrl);

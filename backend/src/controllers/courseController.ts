@@ -37,11 +37,13 @@ export const getCourses = async (req: Request<{}, {}, {}, QueryParams>, res: Res
     if (search) {
       filter.$or = [
         { code: { $regex: search, $options: 'i' } },
-        { name: { $regex: search, $options: 'i' } }
+        { name: { $regex: search, $options: 'i' } },
+        { instructor: { $regex: search, $options: 'i' } }
       ];
     }
 
     const courses = await Course.find(filter)
+      .select('code name description credits department semester instructor capacity enrolledStudents')
       .skip(skip)
       .limit(limit)
       .sort({ code: 1 });

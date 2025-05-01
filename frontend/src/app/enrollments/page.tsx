@@ -40,7 +40,12 @@ const EnrollmentsPage = () => {
         return;
       }
 
-      const data = await enrollmentService.getMyEnrollments();
+      let data;
+      if (user?.role === 'admin') {
+        data = await enrollmentService.getAllEnrollments();
+      } else {
+        data = await enrollmentService.getMyEnrollments();
+      }
       setEnrollments(data);
     } catch (err: any) {
       if (err?.response?.status === 401) {
@@ -55,11 +60,11 @@ const EnrollmentsPage = () => {
   };
 
   const handleUnenroll = async (enrollmentId: string) => {
-    if (window.confirm('Bu dersten kaydınızı silmek istediğinizden emin misiniz?')) {
+    if (window.confirm('Bu ders kaydını silmek istediğinizden emin misiniz?')) {
       try {
         await enrollmentService.deleteEnrollment(enrollmentId);
         toast.success('Ders kaydı başarıyla silindi.');
-        fetchEnrollments(); // Store'u güncelle
+        fetchEnrollments();
       } catch (error) {
         toast.error('Ders kaydı silinirken bir hata oluştu.');
       }
@@ -79,7 +84,9 @@ const EnrollmentsPage = () => {
   return (
     <Layout>
       <div className="container mx-auto py-8 px-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Kayıtlı Derslerim</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+          {user?.role === 'admin' ? 'Tüm Ders Kayıtları' : 'Kayıtlı Derslerim'}
+        </h1>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -97,6 +104,11 @@ const EnrollmentsPage = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ders Adı
                 </th>
+                {user?.role === 'admin' && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Öğrenci
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Öğretim Görevlisi
                 </th>
@@ -112,16 +124,23 @@ const EnrollmentsPage = () => {
               {enrollments.length > 0 ? (
                 enrollments.map((enrollment) => {
                   const course = enrollment.courseId as any;
+                  const student = enrollment.studentId as any;
                   return (
                     <tr key={enrollment._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {course.code}
+                        {course.code || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {course.name}
+                        {course.name || '-'}
                       </td>
+                      {user?.role === 'admin' && (
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student ? `${student.firstName} ${student.lastName}` : '-'} 
+                          {student?.studentNumber ? ` (${student.studentNumber})` : ''}
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {course.instructor}
+                        {course.instructor || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(enrollment.enrollmentDate).toLocaleDateString('tr-TR')}
@@ -139,7 +158,7 @@ const EnrollmentsPage = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={user?.role === 'admin' ? 6 : 5} className="px-6 py-4 text-center text-gray-500">
                     Kayıtlı ders bulunamadı.
                   </td>
                 </tr>
