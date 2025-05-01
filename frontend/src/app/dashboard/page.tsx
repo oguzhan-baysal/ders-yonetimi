@@ -6,6 +6,9 @@ import Layout from '@/components/layout/Layout';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { enrollmentService } from '@/services/enrollmentService';
+import { Enrollment } from '@/services/enrollmentService';
+import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -27,6 +30,7 @@ export default function DashboardPage() {
   const { user: authUser, isAuthenticated, token } = useAuth();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -47,6 +51,12 @@ export default function DashboardPage() {
         }
 
         setUserInfo(response.data);
+
+        // Öğrenci ise kayıtlı dersleri getir
+        if (authUser.role === 'student') {
+          const enrollmentsData = await enrollmentService.getMyEnrollments();
+          setEnrollments(enrollmentsData);
+        }
       } catch (error) {
         console.error('Error fetching user info:', error);
         if (axios.isAxiosError(error) && error.response?.status === 401) {
@@ -122,8 +132,68 @@ export default function DashboardPage() {
 
               {userInfo.role === 'student' ? (
                 <div className="mt-6">
-                  <h2 className="text-lg font-medium text-gray-900 mb-2">Kayıtlı Dersler</h2>
-                  <p className="text-sm text-gray-500">Henüz kayıtlı ders bulunmuyor.</p>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-medium text-gray-900">Kayıtlı Dersler</h2>
+                    <Link 
+                      href="/courses" 
+                      className="text-sm text-indigo-600 hover:text-indigo-900"
+                    >
+                      Tüm Dersleri Görüntüle →
+                    </Link>
+                  </div>
+                  {enrollments.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Ders Kodu
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Ders Adı
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Öğretim Görevlisi
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Kayıt Tarihi
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {enrollments.map((enrollment) => {
+                            const course = enrollment.courseId as any;
+                            return (
+                              <tr key={enrollment._id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {course.code}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {course.name}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {course.instructor || '-'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(enrollment.enrollmentDate).toLocaleDateString('tr-TR')}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-4">Henüz kayıtlı ders bulunmuyor.</p>
+                      <Link 
+                        href="/courses" 
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        Ders Seç ve Kayıt Ol
+                      </Link>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="mt-6">
