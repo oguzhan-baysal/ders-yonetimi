@@ -3,13 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
-import authService from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'react-hot-toast';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface UserInfo {
   _id: string;
   username: string;
   email: string;
   role: string;
+  displayName?: string;
   studentInfo?: {
     firstName: string;
     lastName: string;
@@ -19,32 +24,49 @@ interface UserInfo {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user: authUser, isAuthenticated, token } = useAuth();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchUserInfo = async () => {
       try {
-        const currentUser = authService.getCurrentUser();
-        if (!currentUser) {
-          router.push('/auth/login');
+        if (!isAuthenticated || !authUser || !token) {
+          router.replace('/auth/login');
           return;
         }
 
-        const userInfo = await authService.getMe();
-        setUser(userInfo);
+        const response = await axios.get(`${API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 401) {
+          throw new Error('Oturum süresi dolmuş');
+        }
+
+        setUserInfo(response.data);
       } catch (error) {
-        console.error('Auth error:', error);
-        router.push('/auth/login');
+        console.error('Error fetching user info:', error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          toast.error('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+        } else {
+          toast.error('Kullanıcı bilgileri alınamadı');
+        }
+        router.replace('/auth/login');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    checkAuth();
-  }, [router]);
+    if (typeof window !== 'undefined') {
+      fetchUserInfo();
+    }
+  }, [authUser, isAuthenticated, router, token]);
 
-  if (loading) {
+  // Loading durumunda sadece loading spinner göster
+  if (isLoading || !userInfo) {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
@@ -54,6 +76,8 @@ export default function DashboardPage() {
     );
   }
 
+  const displayName = userInfo.displayName || userInfo.studentInfo?.firstName || userInfo.email.split('@')[0];
+
   return (
     <Layout>
       <div className="py-12">
@@ -61,38 +85,34 @@ export default function DashboardPage() {
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <h1 className="text-2xl font-semibold text-gray-900 mb-4">
-                Hoş Geldiniz, {user?.studentInfo?.firstName || user?.username}!
+                Hoş Geldiniz, {displayName}!
               </h1>
               
               <div className="mt-4 border-t border-gray-200 pt-4">
                 <h2 className="text-lg font-medium text-gray-900 mb-2">Hesap Bilgileri</h2>
                 <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Kullanıcı Adı</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user?.username}</dd>
-                  </div>
-                  <div>
                     <dt className="text-sm font-medium text-gray-500">E-posta</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user?.email}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{userInfo.email}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Rol</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {user?.role === 'admin' ? 'Yönetici' : 'Öğrenci'}
+                      {userInfo.role === 'admin' ? 'Yönetici' : 'Öğrenci'}
                     </dd>
                   </div>
-                  {user?.role === 'student' && user?.studentInfo && (
+                  {userInfo.role === 'student' && userInfo.studentInfo && (
                     <>
                       <div>
                         <dt className="text-sm font-medium text-gray-500">Ad Soyad</dt>
                         <dd className="mt-1 text-sm text-gray-900">
-                          {user.studentInfo.firstName} {user.studentInfo.lastName}
+                          {userInfo.studentInfo.firstName} {userInfo.studentInfo.lastName}
                         </dd>
                       </div>
                       <div>
                         <dt className="text-sm font-medium text-gray-500">Doğum Tarihi</dt>
                         <dd className="mt-1 text-sm text-gray-900">
-                          {new Date(user.studentInfo.birthDate).toLocaleDateString('tr-TR')}
+                          {new Date(userInfo.studentInfo.birthDate).toLocaleDateString('tr-TR')}
                         </dd>
                       </div>
                     </>
@@ -100,10 +120,9 @@ export default function DashboardPage() {
                 </dl>
               </div>
 
-              {user?.role === 'student' ? (
+              {userInfo.role === 'student' ? (
                 <div className="mt-6">
                   <h2 className="text-lg font-medium text-gray-900 mb-2">Kayıtlı Dersler</h2>
-                  {/* Kayıtlı dersler listesi buraya gelecek */}
                   <p className="text-sm text-gray-500">Henüz kayıtlı ders bulunmuyor.</p>
                 </div>
               ) : (

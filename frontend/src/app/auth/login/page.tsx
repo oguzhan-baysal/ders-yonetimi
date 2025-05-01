@@ -4,65 +4,63 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import Layout from '@/components/layout/Layout';
 import authService from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'react-hot-toast';
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
-    // Kayıt başarılı mesajını göster
-    if (searchParams.get('registered') === 'true') {
-      setShowSuccessMessage(true);
+    // Kullanıcı zaten giriş yapmışsa dashboard'a yönlendir
+    if (isAuthenticated) {
+      router.replace('/dashboard');
+      return;
     }
-  }, [searchParams]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Hata mesajını temizle
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    // Kayıt başarılı mesajını göster
+    const isNewRegistration = searchParams.get('registered') === 'true';
+    if (isNewRegistration) {
+      toast.success('Kayıt işleminiz başarıyla tamamlandı. Lütfen giriş yapın.', {
+        duration: 5000, // 5 saniye göster
+        position: 'top-center'
+      });
     }
-  };
+  }, [isAuthenticated, router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setErrors({});
     
-    // Form doğrulama
-    const newErrors: Record<string, string> = {};
-    if (!formData.email) {
-      newErrors.email = 'E-posta adresi gereklidir';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Şifre gereklidir';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      // API çağrısı
-      await authService.login(formData);
+      const response = await authService.login(formData);
       
-      // Başarılı giriş sonrası yönlendirme
-      router.push('/dashboard');
+      // Auth state'i güncelle
+      login({
+        id: response._id,
+        email: response.email,
+        role: response.role
+      }, response.token);
+      
+      // Başarılı mesajı göster
+      toast.success('Başarıyla giriş yapıldı!');
+      
+      // Dashboard'a yönlendir
+      window.location.href = '/dashboard';
     } catch (error: any) {
       console.error('Giriş hatası:', error);
+      toast.error(error.response?.data?.message || 'Giriş yapılırken bir hata oluştu.');
       setErrors({
         submit: error.response?.data?.message || 'Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.',
       });
@@ -91,21 +89,13 @@ export default function LoginPage() {
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            {showSuccessMessage && (
-              <div className="mb-4 p-4 rounded-md bg-green-50 border border-green-200">
-                <p className="text-sm text-green-700">
-                  Kayıt işleminiz başarıyla tamamlandı. Lütfen giriş yapın.
-                </p>
-              </div>
-            )}
-
             <form className="space-y-6" onSubmit={handleSubmit}>
               <Input
                 label="E-posta adresi"
                 type="email"
                 name="email"
                 value={formData.email}
-                onChange={handleChange}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 error={errors.email}
                 autoComplete="email"
                 required
@@ -116,7 +106,7 @@ export default function LoginPage() {
                 type="password"
                 name="password"
                 value={formData.password}
-                onChange={handleChange}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 error={errors.password}
                 autoComplete="current-password"
                 required

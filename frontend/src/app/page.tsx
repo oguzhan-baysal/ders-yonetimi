@@ -1,9 +1,21 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
+import { useAuth } from '@/hooks/useAuth';
 
-export default function Home() {
+export default function HomePage() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
+
   return (
     <Layout>
       <div className="relative">
@@ -23,12 +35,14 @@ export default function Home() {
               Derslerinizi planlayın, öğrencilerinizi yönetin ve eğitim süreçlerinizi optimize edin.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Link
-                href="/auth/register"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Hemen Başla
-              </Link>
+              {!isAuthenticated && (
+                <Link
+                  href="/auth/login"
+                  className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  Giriş Yap
+                </Link>
+              )}
               <Link
                 href="/about"
                 className="text-sm font-semibold leading-6 text-gray-900"

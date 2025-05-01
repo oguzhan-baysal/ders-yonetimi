@@ -3,9 +3,22 @@ import { Student, StudentFormData } from '../types/student';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+interface GetStudentsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 export const studentService = {
-  getAllStudents: async (): Promise<Student[]> => {
-    const response = await axios.get(`${API_URL}/students`);
+  getAllStudents: async (params?: GetStudentsParams): Promise<Student[]> => {
+    const { page = 1, limit = 10, search = '' } = params || {};
+    const response = await axios.get(`${API_URL}/students`, {
+      params: {
+        page,
+        limit,
+        search
+      }
+    });
     return response.data;
   },
 

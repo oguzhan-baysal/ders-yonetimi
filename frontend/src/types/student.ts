@@ -1,5 +1,7 @@
+import type { Course } from './index';
+
 export interface Student {
-  id: string;
+  _id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -8,6 +10,7 @@ export interface Student {
   department: string;
   createdAt: string;
   updatedAt: string;
+  courses?: Course[];
 }
 
 export interface StudentFormData {

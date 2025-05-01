@@ -1,8 +1,8 @@
 // User types
 export interface User {
   _id: string;
-  username: string;
   email: string;
+  username?: string;
   role: 'admin' | 'student';
 }
 
@@ -25,31 +25,49 @@ export interface Student {
   _id: string;
   firstName: string;
   lastName: string;
-  birthDate?: string;
-  userId: string | User;
+  email: string;
+  birthDate: string;
+  studentNumber: string;
+  department: string;
   createdAt: string;
   updatedAt: string;
-  email: string;
+  courses?: Course[];
 }
 
 export interface StudentFormData {
   firstName: string;
   lastName: string;
-  birthDate?: string;
+  email: string;
+  birthDate: string;
+  studentNumber: string;
+  department: string;
 }
 
 // Course types
 export interface Course {
   _id: string;
+  code: string;
   name: string;
   description: string;
+  instructor: string;
+  credits: number;
+  semester: string;
+  department: string;
+  capacity: number;
+  enrolledStudents?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CourseFormData {
+  code: string;
   name: string;
   description: string;
+  instructor: string;
+  credits: number;
+  semester: string;
+  department: string;
+  capacity: number;
 }
 
 // Enrollment types
