@@ -6,14 +6,14 @@ import Layout from '@/components/layout/Layout';
 export default function Home() {
   return (
     <Layout>
-      <div className="relative isolate">
+      <div className="relative">
         {/* Background decoration */}
-        <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
+        <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80 pointer-events-none">
           <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" />
         </div>
 
         {/* Hero section */}
-        <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
+        <div className="relative z-10 mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
               Ders Yönetim Sistemi
@@ -40,7 +40,7 @@ export default function Home() {
         </div>
 
         {/* Feature section */}
-        <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-32">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 mt-32">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-indigo-600">Daha Hızlı Yönetim</h2>
             <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -84,7 +84,7 @@ export default function Home() {
         </div>
 
         {/* Background decoration */}
-        <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
+        <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)] pointer-events-none">
           <div className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]" />
         </div>
       </div>
