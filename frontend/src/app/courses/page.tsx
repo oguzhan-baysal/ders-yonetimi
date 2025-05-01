@@ -7,6 +7,8 @@ import Button from '@/components/ui/Button';
 import { courseService } from '@/services/courseService';
 import type { Course } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
+import { useEnrollmentStore } from '@/store/enrollmentStore';
+import { enrollmentService } from '@/services/enrollmentService';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -19,6 +21,8 @@ const CoursesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
+  const { isEnrolled, setEnrollments } = useEnrollmentStore();
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -28,7 +32,17 @@ const CoursesPage = () => {
     }
 
     fetchCourses();
+    fetchEnrollments();
   }, [isAuthenticated, router, currentPage, searchTerm]);
+
+  const fetchEnrollments = async () => {
+    try {
+      const data = await enrollmentService.getMyEnrollments();
+      setEnrollments(data);
+    } catch (error) {
+      console.error('Error fetching enrollments:', error);
+    }
+  };
 
   const fetchCourses = async () => {
     try {
@@ -59,6 +73,20 @@ const CoursesPage = () => {
       } catch (error) {
         toast.error('Ders silinirken bir hata oluştu.');
       }
+    }
+  };
+
+  const handleEnroll = async (courseId: string) => {
+    try {
+      setEnrollingCourseId(courseId);
+      await courseService.enrollCourse(courseId);
+      toast.success('Derse başarıyla kayıt oldunuz.');
+      await fetchEnrollments(); // Kayıt işleminden sonra enrollments'ı güncelle
+      fetchCourses();
+    } catch (error: any) {
+      toast.error(error.message || 'Derse kayıt olurken bir hata oluştu.');
+    } finally {
+      setEnrollingCourseId(null);
     }
   };
 
@@ -126,11 +154,9 @@ const CoursesPage = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Kredi
                 </th>
-                {user?.role === 'admin' && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İşlemler
-                  </th>
-                )}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  İşlemler
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -148,29 +174,44 @@ const CoursesPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {course.credits}
                   </td>
-                  {user?.role === 'admin' && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex gap-2">
-                        <Link href={`/courses/${course._id}/edit`}>
-                          <Button variant="secondary" size="sm">
-                            Düzenle
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex gap-2">
+                      {user?.role === 'admin' ? (
+                        <>
+                          <Link href={`/courses/${course._id}/edit`}>
+                            <Button variant="secondary" size="sm">
+                              Düzenle
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDelete(course._id)}
+                          >
+                            Sil
                           </Button>
-                        </Link>
+                        </>
+                      ) : (
                         <Button
-                          variant="danger"
+                          variant="primary"
                           size="sm"
-                          onClick={() => handleDelete(course._id)}
+                          onClick={() => handleEnroll(course._id)}
+                          disabled={enrollingCourseId === course._id || isEnrolled(course._id)}
                         >
-                          Sil
+                          {enrollingCourseId === course._id 
+                            ? 'Kaydediliyor...' 
+                            : isEnrolled(course._id) 
+                              ? 'Kayıtlı' 
+                              : 'Derse Kayıt Ol'}
                         </Button>
-                      </div>
-                    </td>
-                  )}
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
               {courses.length === 0 && (
                 <tr>
-                  <td colSpan={user?.role === 'admin' ? 5 : 4} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
                     Kayıtlı ders bulunamadı.
                   </td>
                 </tr>
@@ -179,29 +220,26 @@ const CoursesPage = () => {
           </table>
         </div>
 
-        <div className="mt-4 flex justify-center">
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Önceki
-            </Button>
-            <span className="px-4 py-2 text-sm text-gray-700">
-              Sayfa {currentPage} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Sonraki
-            </Button>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-6">
+            <nav className="flex gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === page
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </nav>
           </div>
-        </div>
+        )}
       </div>
     </Layout>
   );

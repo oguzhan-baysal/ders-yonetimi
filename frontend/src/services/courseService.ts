@@ -79,4 +79,12 @@ export const courseService = {
       throw new Error(error.response?.data?.message || 'Ders öğrencileri yüklenirken bir hata oluştu');
     }
   },
+
+  enrollCourse: async (id: string): Promise<void> => {
+    try {
+      await api.post(`/courses/${id}/enroll`);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Derse kayıt olurken bir hata oluştu');
+    }
+  }
 }; 

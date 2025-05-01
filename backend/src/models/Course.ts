@@ -7,6 +7,9 @@ export interface ICourse extends Document {
   credits: number;
   department?: string;
   semester?: string;
+  instructor: string;
+  capacity: number;
+  enrolledStudents?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +49,20 @@ const courseSchema = new Schema<ICourse>(
       type: String,
       enum: ['1', '2', '3', '4', '5', '6', '7', '8'],
     },
+    instructor: {
+      type: String,
+      required: [true, 'Öğretim görevlisi zorunludur'],
+      trim: true,
+    },
+    capacity: {
+      type: Number,
+      required: [true, 'Kontenjan zorunludur'],
+      min: [1, 'Kontenjan en az 1 olmalıdır'],
+    },
+    enrolledStudents: {
+      type: Number,
+      default: 0,
+    }
   },
   {
     timestamps: true,

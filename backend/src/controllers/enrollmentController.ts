@@ -99,7 +99,7 @@ export const createEnrollment = async (req: Request<{}, {}, EnrollmentBody>, res
 
 // @desc    Kayıt sil
 // @route   DELETE /api/enrollments/:id
-// @access  Private/Admin
+// @access  Private
 export const deleteEnrollment = async (req: Request, res: Response): Promise<void> => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -111,6 +111,17 @@ export const deleteEnrollment = async (req: Request, res: Response): Promise<voi
       await session.abortTransaction();
       res.status(404).json({ message: 'Kayıt bulunamadı' });
       return;
+    }
+
+    // Admin değilse, sadece kendi kaydını silebilir
+    if (req.user?.role !== 'admin') {
+      const student = await Student.findOne({ userId: req.user?._id });
+      
+      if (!student || student._id.toString() !== enrollment.studentId.toString()) {
+        await session.abortTransaction();
+        res.status(403).json({ message: 'Bu kaydı silme yetkiniz yok' });
+        return;
+      }
     }
 
     await enrollment.deleteOne({ session });
@@ -160,6 +171,31 @@ export const getCourseStudents = async (req: Request, res: Response): Promise<vo
           select: 'email'
         }
       })
+      .sort({ enrollmentDate: -1 });
+
+    res.json(enrollments);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Sunucu hatası', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+  }
+};
+
+// @desc    Giriş yapmış kullanıcının kayıtlarını getir
+// @route   GET /api/enrollments/my
+// @access  Private
+export const getMyEnrollments = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const student = await Student.findOne({ userId: req.user?._id });
+    
+    if (!student) {
+      res.status(404).json({ message: 'Öğrenci bulunamadı' });
+      return;
+    }
+
+    const enrollments = await Enrollment.find({ studentId: student._id })
+      .populate('courseId', 'name code instructor capacity')
       .sort({ enrollmentDate: -1 });
 
     res.json(enrollments);

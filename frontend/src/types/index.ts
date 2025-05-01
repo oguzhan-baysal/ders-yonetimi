@@ -54,7 +54,7 @@ export interface Course {
   semester: string;
   department: string;
   capacity: number;
-  enrolledStudents?: number;
+  enrolledStudents: number;
   createdAt: string;
   updatedAt: string;
 }

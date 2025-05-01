@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { IUser } from '../models/User';
-import User from '../models/User';
+import User, { IUser } from '../models/User';
+import Student from '../models/Student';
 
 // Request tipini genişlet
 declare global {
@@ -12,56 +12,62 @@ declare global {
   }
 }
 
-export const protect = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  let token: string | undefined;
+export const protect = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    let token;
 
-  console.log('Auth Headers:', req.headers.authorization);
-
-  if (req.headers.authorization?.startsWith('Bearer')) {
-    try {
-      // Token'ı al
+    if (req.headers.authorization?.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
-      console.log('Extracted Token:', token);
+    }
 
-      // Token'ı doğrula
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as jwt.JwtPayload;
-      console.log('Decoded Token:', decoded);
-
-      // Kullanıcıyı bul ve request'e ekle (şifre hariç)
-      const user = await User.findById(decoded.id).select('-password');
-      if (!user) {
-        console.log('User not found for id:', decoded.id);
-        res.status(401).json({ message: 'Kullanıcı bulunamadı' });
-        return;
-      }
-      console.log('Found User:', user);
-      req.user = user as IUser;
-
-      next();
-    } catch (error) {
-      console.error('Auth Error:', error);
+    if (!token) {
       res.status(401).json({ message: 'Yetkilendirme başarısız' });
       return;
     }
-  }
 
-  if (!token) {
-    console.log('No token found in request');
-    res.status(401).json({ message: 'Token bulunamadı' });
-    return;
+    // Token'ı doğrula
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as { id: string };
+
+    // Kullanıcıyı bul ve studentId'yi populate et
+    const user = await User.findById(decoded.id).populate('studentId');
+
+    if (!user) {
+      res.status(401).json({ message: 'Kullanıcı bulunamadı' });
+      return;
+    }
+
+    // Eğer kullanıcı öğrenci ise ve studentId yoksa, Student koleksiyonundan bul
+    if (user.role === 'student' && !user.studentId) {
+      const student = await Student.findOne({ userId: user._id });
+      if (student) {
+        await User.findByIdAndUpdate(user._id, { studentId: student._id });
+        user.studentId = student._id;
+      }
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ 
+      message: 'Yetkilendirme başarısız',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
-export const authorize = (role: string) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    if (req.user && req.user.role === role) {
-      next();
-    } else {
-      res.status(403).json({ message: `Bu işlem için ${role} yetkisi gereklidir` });
+export const authorize = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      res.status(401).json({ message: 'Yetkilendirme başarısız' });
+      return;
     }
+
+    if (!roles.includes(req.user.role)) {
+      res.status(403).json({ 
+        message: 'Bu işlem için yetkiniz yok'
+      });
+      return;
+    }
+    next();
   };
 }; 

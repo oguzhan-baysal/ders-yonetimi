@@ -28,9 +28,9 @@ interface LoginBody {
 // @desc    Kullanıcı kaydı
 // @route   POST /api/auth/register
 // @access  Public
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (req: Request<{}, {}, RegisterBody>, res: Response): Promise<void> => {
   try {
-    const { username, email, password, role, firstName, lastName, birthDate } = req.body as RegisterBody;
+    const { username, email, password, role, firstName, lastName, birthDate } = req.body;
 
     // Input validasyonu
     if (!username || !email || !password) {
@@ -84,12 +84,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         return;
       }
 
-      await Student.create({
+      const student = await Student.create({
         userId: user._id,
         firstName,
         lastName,
         birthDate
       });
+
+      // Öğrenci ID'sini kullanıcıya ekle
+      await User.findByIdAndUpdate(user._id, { studentId: student._id });
     }
 
     res.status(201).json({
@@ -100,10 +103,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       token: generateToken(user._id),
     });
   } catch (error) {
-    console.error('Register Error:', error);
     res.status(500).json({ 
       message: 'Kayıt işlemi başarısız', 
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -111,41 +113,45 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 // @desc    Kullanıcı girişi
 // @route   POST /api/auth/login
 // @access  Public
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: Request<{}, {}, LoginBody>, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body as LoginBody;
+    const { email, password } = req.body;
 
-    // Input validasyonu
+    // Email ve şifre kontrolü
     if (!email || !password) {
-      res.status(400).json({ message: 'Email ve şifre zorunludur' });
+      res.status(400).json({ message: 'Lütfen email ve şifre giriniz' });
       return;
     }
 
-    const user = await User.findOne({ email });
-
+    // Kullanıcıyı bul ve öğrenci bilgilerini getir
+    const user = await User.findOne({ email }).populate('studentId');
     if (!user) {
       res.status(401).json({ message: 'Geçersiz email veya şifre' });
       return;
     }
 
-    const isMatch = await user.matchPassword(password);
+    // Şifre kontrolü
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       res.status(401).json({ message: 'Geçersiz email veya şifre' });
       return;
     }
+
+    // JWT token oluştur
+    const token = generateToken(user._id);
 
     res.json({
       _id: user._id,
       username: user.username,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id),
+      studentId: user.studentId,
+      token
     });
   } catch (error) {
-    console.error('Login Error:', error);
     res.status(500).json({ 
-      message: 'Giriş işlemi başarısız',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined 
+      message: 'Giriş yapılırken bir hata oluştu', 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -155,29 +161,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 // @access  Private
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = await User.findById(req.user?._id).select('-password');
+    const user = await User.findById(req.user?._id)
+      .select('-password')
+      .populate('studentId');
     
     if (!user) {
       res.status(404).json({ message: 'Kullanıcı bulunamadı' });
       return;
     }
 
-    if (user.role === 'student') {
-      const student = await Student.findOne({ userId: user._id });
-      if (!student) {
-        res.status(404).json({ message: 'Öğrenci bilgileri bulunamadı' });
-        return;
-      }
-      res.json({ ...user.toObject(), studentInfo: student });
-      return;
-    }
-
     res.json(user);
   } catch (error) {
-    console.error('GetMe Error:', error);
     res.status(500).json({ 
       message: 'Kullanıcı bilgileri alınamadı',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
@@ -189,10 +186,9 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
     res.json({ message: 'Başarıyla çıkış yapıldı' });
   } catch (error) {
-    console.error('Logout Error:', error);
     res.status(500).json({ 
       message: 'Çıkış işlemi başarısız',
-      error: process.env.NODE_ENV === 'development' ? error instanceof Error ? error.message : 'Unknown error' : undefined 
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 }; 

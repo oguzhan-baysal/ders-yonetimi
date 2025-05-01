@@ -6,9 +6,10 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'admin' | 'student';
-  matchPassword(enteredPassword: string): Promise<boolean>;
+  studentId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 interface IUserModel extends Model<IUser> {
@@ -24,8 +25,9 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Email adresi zorunludur'],
+    required: [true, 'E-posta adresi zorunludur'],
     unique: true,
+    trim: true,
     lowercase: true,
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Geçerli bir email adresi giriniz']
   },
@@ -38,6 +40,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['admin', 'student'],
     default: 'student'
+  },
+  studentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
   }
 }, {
   timestamps: true
@@ -49,13 +55,23 @@ userSchema.pre('save', async function(this: IUser, next) {
     next();
     return;
   }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error: any) {
+    next(error);
+  }
 });
 
 // Şifre karşılaştırma metodu
-userSchema.methods.matchPassword = async function(this: IUser, enteredPassword: string): Promise<boolean> {
-  return await bcrypt.compare(enteredPassword, this.password);
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw error;
+  }
 };
 
 const User = mongoose.model<IUser, IUserModel>('User', userSchema);
