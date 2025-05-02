@@ -2,8 +2,6 @@
 
 Modern web teknolojileri kullanılarak geliştirilmiş, öğrenci ve ders yönetimini kolaylaştıran kapsamlı bir yönetim sistemi.
 
-> **Not**: Bu proje, bir işe alım değerlendirmesi için geliştirilmiştir. Kurulum ve test sürecini kolaylaştırmak amacıyla tüm konfigürasyon değerleri (JWT_SECRET, MongoDB URI vb.) README dosyasında paylaşılmıştır. Gerçek bir production ortamında bu değerler kesinlikle gizli tutulmalı ve güvenli bir şekilde yönetilmelidir.
-
 ## 🎯 Proje Amacı
 
 Bu proje, eğitim kurumlarının öğrenci ve ders yönetimini dijital ortamda etkili bir şekilde yönetmelerini sağlamak amacıyla geliştirilmiştir. Sistem, öğrenci kayıtları, ders programları ve kayıt işlemlerini modern bir arayüz ile yönetme imkanı sunar.
@@ -50,10 +48,12 @@ Bu proje, eğitim kurumlarının öğrenci ve ders yönetimini dijital ortamda e
 - JWT (Kimlik doğrulama)
 - Mongoose (ODM)
 
-### DevOps & Deployment
-- Docker
-- Docker Compose
-- MongoDB Atlas
+### DevOps & Tools
+- Docker & Docker Compose
+- Git & GitHub Actions
+- ESLint & Prettier
+- Jest & React Testing Library
+- Swagger/OpenAPI
 
 ## 📦 Kurulum
 
@@ -71,7 +71,16 @@ git clone <repo-url>
 cd ders-yonetimi
 ```
 
-2. Docker Compose ile uygulamayı başlatın
+2. Ortam değişkenlerini ayarlayın
+```bash
+# Frontend için
+cp frontend/.env.example frontend/.env.local
+
+# Backend için
+cp backend/.env.example backend/.env
+```
+
+3. Docker Compose ile uygulamayı başlatın
 ```bash
 docker-compose up --build
 ```
@@ -99,6 +108,8 @@ npm run dev
 
 ## 🔧 Ortam Değişkenleri
 
+Her servis için `.env.example` dosyaları bulunmaktadır. Bu dosyaları kopyalayıp kendi değerlerinizle güncelleyin:
+
 ### Frontend (.env.local)
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
@@ -106,35 +117,25 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
 ### Backend (.env)
 ```env
+# Örnek konfigürasyon - Kendi değerlerinizle güncelleyin
 PORT=5000
-MONGODB_URI=mongodb+srv://ozzyby:aPVt3KfTdvGxIDEK@cluster0.nhj97ke.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-JWT_SECRET=ders_yonetim_sistemi_gizli_anahtar_2024
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 NODE_ENV=development
 CORS_ORIGIN=http://localhost:3000
 ```
 
-### Docker Compose Yapılandırması
+## 🧪 Test
 
-Proje, Docker Compose ile aşağıdaki servisleri içerir:
+[Test dokümantasyonu için tıklayın](docs/TESTING.md)
 
-- **Frontend Container**:
-  - Next.js uygulaması
-  - Port: 3000
-  - Hot-reload destekli development modu
-  - Volume mapping ile anlık kod değişikliği
+## 📝 API Dokümantasyonu
 
-- **Backend Container**:
-  - Express.js API
-  - Port: 5000
-  - TypeScript derleme ve çalıştırma
-  - Volume mapping ile anlık kod değişikliği
-  - Health check endpoint'i ile servis durumu kontrolü
+[API dokümantasyonu için tıklayın](docs/API.md)
 
-> **Güvenlik Notu**: Yukarıdaki konfigürasyon değerleri sadece local development ve test amaçlıdır. Gerçek bir uygulamada:
-> - JWT_SECRET değeri benzersiz ve tahmin edilemez olmalıdır
-> - Hassas bilgiler .env dosyasında saklanmalı ve bu dosya .gitignore'a eklenmelidir
-> - Production ortamında environment variable'lar güvenli bir şekilde yönetilmelidir
-> - MongoDB bağlantı URI'si güvenli ve şifreli olmalıdır
+## 🔒 Güvenlik
+
+[Güvenlik dokümantasyonu için tıklayın](docs/SECURITY.md)
 
 ## 📁 Proje Yapısı
 
@@ -143,190 +144,32 @@ ders-yonetimi/
 ├── frontend/           # Next.js frontend uygulaması
 │   ├── src/           # Kaynak kodları
 │   ├── public/        # Statik dosyalar
-│   ├── Dockerfile     # Frontend production Docker yapılandırması
-│   ├── Dockerfile.dev # Frontend development Docker yapılandırması
+│   ├── tests/         # Test dosyaları
 │   └── README.md      # Frontend dokümantasyonu
 │
 ├── backend/           # Express.js backend API
 │   ├── src/          # Kaynak kodları
 │   ├── tests/        # Test dosyaları
-│   ├── Dockerfile    # Backend production Docker yapılandırması
-│   ├── Dockerfile.dev # Backend development Docker yapılandırması
 │   └── README.md     # Backend dokümantasyonu
 │
+├── docs/             # Detaylı dokümantasyon
+│   ├── API.md        # API dokümantasyonu
+│   ├── SECURITY.md   # Güvenlik dokümantasyonu
+│   └── TESTING.md    # Test dokümantasyonu
+│
 ├── docker-compose.yml # Docker Compose yapılandırması
-├── .github/          # GitHub workflow ve şablonları
-├── docs/            # Ek dokümantasyon
-└── README.md        # Ana README dosyası
+└── README.md         # Ana README dosyası
 ```
 
-## 🚀 Geliştirme
+## 👥 Katkıda Bulunma
 
-### Docker ile Geliştirme
-```bash
-# Servisleri başlat
-docker-compose up
-
-# Servisleri yeniden build et ve başlat
-docker-compose up --build
-
-# Servisleri durdur
-docker-compose down
-
-# Container loglarını görüntüle
-docker-compose logs -f
-```
-
-### Frontend Geliştirme
-```bash
-cd frontend
-npm run dev     # Geliştirme sunucusunu başlat
-npm run build   # Production build
-npm run lint    # Kod kalitesi kontrolü
-```
-
-### Backend Geliştirme
-```bash
-cd backend
-npm run dev     # Geliştirme sunucusunu başlat
-npm run build   # TypeScript derleme
-npm run test    # Testleri çalıştır
-```
-
-## 🧪 Test
-
-### Backend Testleri
-
-```bash
-# Tüm testleri çalıştır
-cd backend
-npm test
-
-# Test coverage raporu oluştur
-npm run test:coverage
-
-# Testleri watch modunda çalıştır
-npm run test:watch
-```
-
-#### Test Teknolojileri
-- **Jest**: Test framework'ü
-- **Supertest**: HTTP assertion kütüphanesi
-- **MongoDB Memory Server**: Test ortamı için bellek-içi MongoDB
-- **TypeScript**: Tip güvenliği
-
-#### Test Kapsamı
-- **Unit Testler**: 
-  - Servis katmanı testleri
-  - Yardımcı fonksiyon testleri
-  - Model validasyon testleri
-
-- **Entegrasyon Testleri**:
-  - Auth API testleri (kayıt, giriş, çıkış)
-  - Öğrenci API testleri (CRUD işlemleri)
-  - Ders API testleri (CRUD işlemleri)
-  - Kayıt API testleri (enrollment işlemleri)
-
-- **Test Ortamı**:
-  - `.env.test` konfigürasyonu
-  - In-memory MongoDB kullanımı
-  - Test-specific middleware ve helper'lar
-
-### Frontend Testleri
-
-```bash
-# Tüm testleri çalıştır
-cd frontend
-npm test
-
-# Test coverage raporu oluştur
-npm run test:coverage
-
-# Testleri watch modunda çalıştır
-npm run test:watch
-```
-
-#### Test Teknolojileri
-- **Jest**: Test framework'ü
-- **React Testing Library**: React komponent testleri
-- **MSW (Mock Service Worker)**: API mock'lama
-- **Jest DOM**: DOM assertion'ları
-
-#### Test Kapsamı
-- **Komponent Testleri**:
-  - UI komponentleri
-  - Form validasyonları
-  - State yönetimi
-  - Event handler'lar
-
-- **Hook Testleri**:
-  - Custom hook'lar
-  - API hook'ları
-  - State hook'ları
-
-- **Util Testleri**:
-  - Helper fonksiyonlar
-  - Validasyon fonksiyonları
-  - Format fonksiyonları
-
-### E2E Testleri (Cypress)
-
-```bash
-# Cypress test runner'ı aç
-cd frontend
-npm run cypress:open
-
-# Headless modda testleri çalıştır
-npm run cypress:run
-```
-
-#### Test Kapsamı
-- Kullanıcı kaydı ve girişi
-- Öğrenci işlemleri
-- Ders işlemleri
-- Kayıt işlemleri
-- Form validasyonları
-- Error handling
-- Responsive tasarım testleri
-
-### Test Best Practices
-- Her PR için test coverage kontrolü
-- Kritik iş mantığı için kapsamlı testler
-- Mock ve stub kullanımı
-- Test verilerinin izolasyonu
-- Anlamlı test isimlendirmesi
-- Test dokümantasyonu
-
-### CI/CD Test Pipeline
-- GitHub Actions ile otomatik test çalıştırma
-- PR'larda test kontrolü
-- Coverage raporlama
-- Lint ve format kontrolü
-
-## 📝 API Dokümantasyonu
-
-API dokümantasyonuna aşağıdaki URL'den erişebilirsiniz:
-```
-http://localhost:5000/api-docs
-```
-
-## 🔒 Güvenlik
-
-- JWT tabanlı kimlik doğrulama
-- Rol bazlı yetkilendirme
-- Input validasyonu
-- XSS ve CSRF koruması
-- Rate limiting
-
-## 🤝 Katkıda Bulunma
-
-1. Fork edin
+1. Bu repository'yi fork edin
 2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
 3. Değişikliklerinizi commit edin (`git commit -m 'feat: Add amazing feature'`)
 4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
 5. Pull Request oluşturun
 
-## 📜 Lisans
+## 📄 Lisans
 
 Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakınız.
 
