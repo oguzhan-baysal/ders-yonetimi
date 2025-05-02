@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Formik, Field } from 'formik';
 import type { FormikHelpers } from 'formik';
 import Layout from '@/components/layout/Layout';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { courseService } from '@/services/courseService';
 import type { CourseFormData } from '@/types';
 import { useAuth } from '@/hooks/useAuth';

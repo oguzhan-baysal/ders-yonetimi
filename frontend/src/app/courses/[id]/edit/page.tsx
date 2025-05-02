@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { courseService } from '@/services/courseService';
 import type { CourseFormData } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -65,7 +65,7 @@ const EditCoursePage = ({ params }: { params: { id: string } }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated || user?.role !== 'admin') {
       toast.error('Bu işlem için yetkiniz yok.');
       return;
@@ -74,7 +74,7 @@ const EditCoursePage = ({ params }: { params: { id: string } }) => {
     try {
       setLoading(true);
       const course = await courseService.updateCourse(params.id, formData);
-      
+
       if (course) {
         toast.success('Ders başarıyla güncellendi.');
         router.push('/courses');

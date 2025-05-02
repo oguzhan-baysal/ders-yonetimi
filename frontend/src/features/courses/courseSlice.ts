@@ -25,32 +25,28 @@ const initialState: CourseState = {
 export const fetchCourses = createAsyncThunk(
   'courses/fetchCourses',
   async (page: number = 1) => {
-    const response = await api.get<PaginatedResponse<Course>>(`/courses?page=${page}`);
-    return response.data;
+    return await api.get<PaginatedResponse<Course>>(`/courses?page=${page}`);
   }
 );
 
 export const createCourse = createAsyncThunk(
   'courses/createCourse',
   async (courseData: Partial<Course>) => {
-    const response = await api.post<Course>('/courses', courseData);
-    return response.data;
+    return await api.post<Course>('/courses', courseData);
   }
 );
 
 export const updateCourse = createAsyncThunk(
   'courses/updateCourse',
   async ({ id, courseData }: { id: string; courseData: Partial<Course> }) => {
-    const response = await api.put<Course>(`/courses/${id}`, courseData);
-    return response.data;
+    return await api.put<Course>(`/courses/${id}`, courseData);
   }
 );
 
 export const deleteCourse = createAsyncThunk(
   'courses/deleteCourse',
   async (id: string) => {
-    const response = await api.delete<Course>(`/courses/${id}`);
-    return response.data;
+    return await api.delete<Course>(`/courses/${id}`);
   }
 );
 

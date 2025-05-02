@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import Layout from '@/components/layout/Layout';
 
 export default function ForgotPasswordPage() {
@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
     try {
       // API çağrısı burada yapılacak
       console.log('Şifre sıfırlama e-postası gönderiliyor:', email);
-      
+
       // Başarılı gönderim sonrası
       setSuccess(true);
     } catch (error) {

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import Layout from '@/components/layout/Layout';
 import authService from '@/services/authService';
 
@@ -72,7 +72,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     // Form doğrulama
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
@@ -85,7 +85,7 @@ export default function RegisterPage() {
       // API çağrısı
       const { passwordConfirm, ...registerData } = formData;
       await authService.register(registerData);
-      
+
       // Başarılı kayıt sonrası yönlendirme
       router.push('/auth/login?registered=true');
     } catch (error: any) {

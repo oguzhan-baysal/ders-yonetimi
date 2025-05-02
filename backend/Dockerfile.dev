@@ -1,0 +1,23 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# TypeScript ve ts-node'u global olarak yükle
+RUN npm install -g typescript ts-node
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+# TypeScript yapılandırma dosyasını kopyala
+COPY tsconfig.json ./
+
+EXPOSE 5000
+
+# Nodemon yapılandırması
+ENV NODE_ENV=development
+ENV TS_NODE_PROJECT=./tsconfig.json
+
+CMD ["npx", "nodemon", "--exec", "ts-node", "src/index.ts"] 

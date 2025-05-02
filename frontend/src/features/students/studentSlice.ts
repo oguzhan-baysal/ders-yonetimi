@@ -25,32 +25,28 @@ const initialState: StudentState = {
 export const fetchStudents = createAsyncThunk(
   'students/fetchStudents',
   async (page: number = 1) => {
-    const response = await api.get<PaginatedResponse<Student>>(`/students?page=${page}`);
-    return response.data;
+    return await api.get<PaginatedResponse<Student>>(`/students?page=${page}`);
   }
 );
 
 export const createStudent = createAsyncThunk(
   'students/createStudent',
   async (studentData: Partial<Student>) => {
-    const response = await api.post<Student>('/students', studentData);
-    return response.data;
+    return await api.post<Student>('/students', studentData);
   }
 );
 
 export const updateStudent = createAsyncThunk(
   'students/updateStudent',
   async ({ id, studentData }: { id: string; studentData: Partial<Student> }) => {
-    const response = await api.put<Student>(`/students/${id}`, studentData);
-    return response.data;
+    return await api.put<Student>(`/students/${id}`, studentData);
   }
 );
 
 export const deleteStudent = createAsyncThunk(
   'students/deleteStudent',
   async (id: string) => {
-    const response = await api.delete<Student>(`/students/${id}`);
-    return response.data;
+    return await api.delete<Student>(`/students/${id}`);
   }
 );
 

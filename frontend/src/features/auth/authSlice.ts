@@ -19,22 +19,19 @@ const initialState: AuthState = {
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { username: string; password: string }) => {
-    const response = await api.post<AuthResponse>('/auth/login', credentials);
-    return response.data;
+    return await api.post<AuthResponse>('/auth/login', credentials);
   }
 );
 
 export const register = createAsyncThunk(
   'auth/register',
   async (userData: { username: string; email: string; password: string }) => {
-    const response = await api.post<AuthResponse>('/auth/register', userData);
-    return response.data;
+    return await api.post<AuthResponse>('/auth/register', userData);
   }
 );
 
 export const getCurrentUser = createAsyncThunk('auth/getCurrentUser', async () => {
-  const response = await api.get<User>('/auth/me');
-  return response.data;
+  return await api.get<User>('/auth/me');
 });
 
 const authSlice = createSlice({

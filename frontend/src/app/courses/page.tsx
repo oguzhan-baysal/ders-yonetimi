@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { courseService } from '@/services/courseService';
 import type { Course } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -56,7 +56,7 @@ const CoursesPage = () => {
         limit: itemsPerPage,
         search: searchTerm
       });
-      
+
       setCourses(response.courses);
       setTotalPages(response.pages);
     } catch (err) {
@@ -201,10 +201,10 @@ const CoursesPage = () => {
                           onClick={() => handleEnroll(course._id)}
                           disabled={enrollingCourseId === course._id || isEnrolled(course._id)}
                         >
-                          {enrollingCourseId === course._id 
-                            ? 'Kaydediliyor...' 
-                            : isEnrolled(course._id) 
-                              ? 'Kayıtlı' 
+                          {enrollingCourseId === course._id
+                            ? 'Kaydediliyor...'
+                            : isEnrolled(course._id)
+                              ? 'Kayıtlı'
                               : 'Derse Kayıt Ol'}
                         </Button>
                       )}
@@ -231,11 +231,10 @@ const CoursesPage = () => {
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
-                  className={`px-3 py-1 rounded ${
-                    currentPage === page
+                  className={`px-3 py-1 rounded ${currentPage === page
                       ? 'bg-indigo-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
+                    }`}
                 >
                   {page}
                 </button>

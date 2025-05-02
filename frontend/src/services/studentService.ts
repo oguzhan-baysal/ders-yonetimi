@@ -1,19 +1,13 @@
 import api from './api';
+import { Student as StudentType } from '@/types/student';
 
-export interface Student {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  birthDate: string;
-  studentNumber: string;
-  department: string;
-}
+export type Student = StudentType;
 
 export interface StudentFormData {
   firstName: string;
   lastName: string;
-  birthDate?: Date;
+  email: string;
+  birthDate: string;
 }
 
 interface GetStudentsParams {

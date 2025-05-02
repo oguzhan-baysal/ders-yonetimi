@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 import { studentService, Student } from '@/services/studentService';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
@@ -45,7 +45,7 @@ const StudentsPage = () => {
         limit: itemsPerPage,
         search: searchTerm
       });
-      
+
       setStudents(response.students);
       setTotalPages(response.pages);
     } catch (err) {

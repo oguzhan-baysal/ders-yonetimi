@@ -1,9 +1,9 @@
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useAppDispatch, useAppSelector } from 'store';
-import { register } from 'features/auth/authSlice';
-import { RegisterData } from 'types';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { register } from '@/features/auth/authSlice';
+import { RegisterData } from '@/types';
 
 const validationSchema = Yup.object({
   username: Yup.string()

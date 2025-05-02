@@ -100,11 +100,11 @@ export default function StudentDetailPage() {
                 <Link href={`/students/${student._id}/edit`}>
                   <Button variant="outline">Düzenle</Button>
                 </Link>
-                <Button variant="destructive" onClick={handleDelete}>
+                <Button variant="danger" onClick={handleDelete}>
                   Sil
                 </Button>
                 <Link href="/students">
-                  <Button variant="ghost">Geri Dön</Button>
+                  <Button variant="outline">Geri Dön</Button>
                 </Link>
               </div>
             </div>

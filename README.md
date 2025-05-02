@@ -50,14 +50,20 @@ Bu proje, eğitim kurumlarının öğrenci ve ders yönetimini dijital ortamda e
 - JWT (Kimlik doğrulama)
 - Mongoose (ODM)
 
+### DevOps & Deployment
+- Docker
+- Docker Compose
+- MongoDB Atlas
+
 ## 📦 Kurulum
 
 ### Ön Gereksinimler
-- Node.js (v18 veya üzeri)
-- MongoDB (v6 veya üzeri)
-- npm veya yarn
+- Docker ve Docker Compose
+- Node.js (v18 veya üzeri) - Lokal geliştirme için
+- MongoDB (v6 veya üzeri) - Lokal geliştirme için
+- npm veya yarn - Lokal geliştirme için
 
-### Kurulum Adımları
+### Docker ile Kurulum (Önerilen)
 
 1. Projeyi klonlayın
 ```bash
@@ -65,14 +71,26 @@ git clone <repo-url>
 cd ders-yonetimi
 ```
 
-2. Frontend kurulumu
+2. Docker Compose ile uygulamayı başlatın
+```bash
+docker-compose up --build
+```
+
+Uygulama aşağıdaki adreslerde çalışacaktır:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5000
+- API Docs: http://localhost:5000/api-docs
+
+### Manuel Kurulum (Lokal Geliştirme İçin)
+
+1. Frontend kurulumu
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-3. Backend kurulumu
+2. Backend kurulumu
 ```bash
 cd backend
 npm install
@@ -83,16 +101,34 @@ npm run dev
 
 ### Frontend (.env.local)
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
 ### Backend (.env)
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/ders-yonetimi
-JWT_SECRET=ders_yonetim_sistemi_gizli_anahtar_2024  # Not: Bu değer sadece development ortamı içindir
+MONGODB_URI=mongodb+srv://ozzyby:aPVt3KfTdvGxIDEK@cluster0.nhj97ke.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+JWT_SECRET=ders_yonetim_sistemi_gizli_anahtar_2024
 NODE_ENV=development
+CORS_ORIGIN=http://localhost:3000
 ```
+
+### Docker Compose Yapılandırması
+
+Proje, Docker Compose ile aşağıdaki servisleri içerir:
+
+- **Frontend Container**:
+  - Next.js uygulaması
+  - Port: 3000
+  - Hot-reload destekli development modu
+  - Volume mapping ile anlık kod değişikliği
+
+- **Backend Container**:
+  - Express.js API
+  - Port: 5000
+  - TypeScript derleme ve çalıştırma
+  - Volume mapping ile anlık kod değişikliği
+  - Health check endpoint'i ile servis durumu kontrolü
 
 > **Güvenlik Notu**: Yukarıdaki konfigürasyon değerleri sadece local development ve test amaçlıdır. Gerçek bir uygulamada:
 > - JWT_SECRET değeri benzersiz ve tahmin edilemez olmalıdır
@@ -107,19 +143,39 @@ ders-yonetimi/
 ├── frontend/           # Next.js frontend uygulaması
 │   ├── src/           # Kaynak kodları
 │   ├── public/        # Statik dosyalar
+│   ├── Dockerfile     # Frontend production Docker yapılandırması
+│   ├── Dockerfile.dev # Frontend development Docker yapılandırması
 │   └── README.md      # Frontend dokümantasyonu
 │
 ├── backend/           # Express.js backend API
 │   ├── src/          # Kaynak kodları
 │   ├── tests/        # Test dosyaları
+│   ├── Dockerfile    # Backend production Docker yapılandırması
+│   ├── Dockerfile.dev # Backend development Docker yapılandırması
 │   └── README.md     # Backend dokümantasyonu
 │
+├── docker-compose.yml # Docker Compose yapılandırması
 ├── .github/          # GitHub workflow ve şablonları
 ├── docs/            # Ek dokümantasyon
 └── README.md        # Ana README dosyası
 ```
 
 ## 🚀 Geliştirme
+
+### Docker ile Geliştirme
+```bash
+# Servisleri başlat
+docker-compose up
+
+# Servisleri yeniden build et ve başlat
+docker-compose up --build
+
+# Servisleri durdur
+docker-compose down
+
+# Container loglarını görüntüle
+docker-compose logs -f
+```
 
 ### Frontend Geliştirme
 ```bash
@@ -172,8 +228,8 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ## 👥 Geliştiriciler
 
-- Oğuzhan Güç - [@oguzhan-guc](https://github.com/oguzhan-guc)
+- Oğuzhan Baysal - [@oguzhan-baysal](https://github.com/oguzhan-baysal)
 
 ## 📞 İletişim
 
-Sorularınız için: [oguzhan.guc@example.com](mailto:oguzhan.guc@example.com) 
+Sorularınız için: [oguzhanbaysal@outlook.com]

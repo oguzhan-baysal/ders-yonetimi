@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -26,7 +26,7 @@ const Navbar = () => {
   ];
 
   // Kullanıcının rolüne göre menü öğelerini filtrele
-  const filteredNavItems = navItems.filter(item => 
+  const filteredNavItems = navItems.filter(item =>
     item.roles.includes(user?.role || '')
   );
 
@@ -59,11 +59,10 @@ const Navbar = () => {
                   <Link
                     key={item.path}
                     href={item.path}
-                    className={`${
-                      isActive(item.path)
+                    className={`${isActive(item.path)
                         ? 'border-indigo-500 text-gray-900'
                         : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors`}
+                      } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors`}
                   >
                     {item.name}
                   </Link>
@@ -71,7 +70,7 @@ const Navbar = () => {
               </div>
             )}
           </div>
-          
+
           <div className="flex items-center">
             {!isAuthenticated ? (
               <Button
@@ -146,11 +145,10 @@ const Navbar = () => {
               <Link
                 key={item.path}
                 href={item.path}
-                className={`${
-                  isActive(item.path)
+                className={`${isActive(item.path)
                     ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
                     : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors`}
+                  } block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors`}
               >
                 {item.name}
               </Link>

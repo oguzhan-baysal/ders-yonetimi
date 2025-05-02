@@ -41,6 +41,10 @@ export default function EditStudentPage() {
   const fetchStudent = async () => {
     try {
       const data = await studentService.getStudentById(params.id as string);
+      if (!data) {
+        toast.error('Öğrenci bulunamadı');
+        return;
+      }
       reset({
         firstName: data.firstName,
         lastName: data.lastName,

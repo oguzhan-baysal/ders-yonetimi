@@ -48,7 +48,7 @@ export const protect = async (req: Request, res: Response, next: NextFunction): 
     req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({ 
+    res.status(401).json({
       message: 'Yetkilendirme başarısız',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
@@ -63,7 +63,7 @@ export const authorize = (...roles: string[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      res.status(403).json({ 
+      res.status(403).json({
         message: 'Bu işlem için yetkiniz yok'
       });
       return;

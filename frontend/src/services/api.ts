@@ -1,11 +1,14 @@
 import axios from 'axios';
 import { handleApiError } from '../utils/helpers';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Request interceptor - Token ekleme
@@ -31,7 +34,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/auth/login';
     }
     return Promise.reject(handleApiError(error));
   }
@@ -39,28 +41,27 @@ api.interceptors.response.use(
 
 // Generic tip desteği eklenmiş metodlar
 const apiWithTypes = {
-  get: <T>(url: string, config?: any) => api.get<T, T>(url, config),
-  post: <T>(url: string, data?: any, config?: any) => api.post<T, T>(url, data, config),
-  put: <T>(url: string, data?: any, config?: any) => api.put<T, T>(url, data, config),
-  delete: <T>(url: string, config?: any) => api.delete<T, T>(url, config),
+  get: <T>(url: string, config?: any): Promise<T> => api.get(url, config),
+  post: <T>(url: string, data?: any, config?: any): Promise<T> => api.post(url, data, config),
+  put: <T>(url: string, data?: any, config?: any): Promise<T> => api.put(url, data, config),
+  delete: <T>(url: string, config?: any): Promise<T> => api.delete(url, config),
 };
 
 // Auth endpoints
 export const authApi = {
-  login: (credentials: { email: string; password: string }) => 
+  login: (credentials: { email: string; password: string }) =>
     api.post('/auth/login', credentials),
-  register: (userData: { email: string; password: string; username: string }) => 
+  register: (userData: { email: string; password: string; username: string }) =>
     api.post('/auth/register', userData),
   me: () => api.get('/auth/me'),
   logout: () => {
     localStorage.removeItem('token');
-    window.location.href = '/auth/login';
   }
 };
 
 // Student endpoints
 export const studentApi = {
-  getAll: (params?: { page?: number; limit?: number; search?: string }) => 
+  getAll: (params?: { page?: number; limit?: number; search?: string }) =>
     api.get('/students', { params }),
   getById: (id: string) => api.get(`/students/${id}`),
   create: (data: any) => api.post('/students', data),
@@ -71,7 +72,7 @@ export const studentApi = {
 
 // Course endpoints
 export const courseApi = {
-  getAll: (params?: { page?: number; limit?: number }) => 
+  getAll: (params?: { page?: number; limit?: number }) =>
     api.get('/courses', { params }),
   getById: (id: string) => api.get(`/courses/${id}`),
   create: (data: any) => api.post('/courses', data),
@@ -82,9 +83,9 @@ export const courseApi = {
 
 // Enrollment endpoints
 export const enrollmentApi = {
-  getAll: (params?: { page?: number; limit?: number }) => 
+  getAll: (params?: { page?: number; limit?: number }) =>
     api.get('/enrollments', { params }),
-  create: (data: { studentId: string; courseId: string }) => 
+  create: (data: { studentId: string; courseId: string }) =>
     api.post('/enrollments', data),
   delete: (id: string) => api.delete(`/enrollments/${id}`)
 };
