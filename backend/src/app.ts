@@ -2,6 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { connectDB } from './config/db';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
+import { specs } from './config/swagger';
 import authRoutes from './routes/auth';
 import studentRoutes from './routes/students';
 import courseRoutes from './routes/courses';
@@ -23,6 +25,9 @@ const corsOptions = {
 // Middleware'leri ekle
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // MongoDB'ye bağlan
 connectDB();
