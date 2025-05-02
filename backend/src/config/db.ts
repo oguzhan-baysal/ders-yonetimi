@@ -9,6 +9,8 @@ export const connectDB = async (): Promise<void> => {
     console.log(`MongoDB Bağlantısı Başarılı: ${conn.connection.host}`);
   } catch (error) {
     console.error('MongoDB Bağlantı Hatası:', error);
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'test') {
+      process.exit(1);
+    }
   }
 }; 

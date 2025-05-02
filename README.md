@@ -195,9 +195,113 @@ npm run test    # Testleri çalıştır
 
 ## 🧪 Test
 
-- Frontend: Jest ve React Testing Library
-- Backend: Jest ve Supertest
-- E2E: Cypress
+### Backend Testleri
+
+```bash
+# Tüm testleri çalıştır
+cd backend
+npm test
+
+# Test coverage raporu oluştur
+npm run test:coverage
+
+# Testleri watch modunda çalıştır
+npm run test:watch
+```
+
+#### Test Teknolojileri
+- **Jest**: Test framework'ü
+- **Supertest**: HTTP assertion kütüphanesi
+- **MongoDB Memory Server**: Test ortamı için bellek-içi MongoDB
+- **TypeScript**: Tip güvenliği
+
+#### Test Kapsamı
+- **Unit Testler**: 
+  - Servis katmanı testleri
+  - Yardımcı fonksiyon testleri
+  - Model validasyon testleri
+
+- **Entegrasyon Testleri**:
+  - Auth API testleri (kayıt, giriş, çıkış)
+  - Öğrenci API testleri (CRUD işlemleri)
+  - Ders API testleri (CRUD işlemleri)
+  - Kayıt API testleri (enrollment işlemleri)
+
+- **Test Ortamı**:
+  - `.env.test` konfigürasyonu
+  - In-memory MongoDB kullanımı
+  - Test-specific middleware ve helper'lar
+
+### Frontend Testleri
+
+```bash
+# Tüm testleri çalıştır
+cd frontend
+npm test
+
+# Test coverage raporu oluştur
+npm run test:coverage
+
+# Testleri watch modunda çalıştır
+npm run test:watch
+```
+
+#### Test Teknolojileri
+- **Jest**: Test framework'ü
+- **React Testing Library**: React komponent testleri
+- **MSW (Mock Service Worker)**: API mock'lama
+- **Jest DOM**: DOM assertion'ları
+
+#### Test Kapsamı
+- **Komponent Testleri**:
+  - UI komponentleri
+  - Form validasyonları
+  - State yönetimi
+  - Event handler'lar
+
+- **Hook Testleri**:
+  - Custom hook'lar
+  - API hook'ları
+  - State hook'ları
+
+- **Util Testleri**:
+  - Helper fonksiyonlar
+  - Validasyon fonksiyonları
+  - Format fonksiyonları
+
+### E2E Testleri (Cypress)
+
+```bash
+# Cypress test runner'ı aç
+cd frontend
+npm run cypress:open
+
+# Headless modda testleri çalıştır
+npm run cypress:run
+```
+
+#### Test Kapsamı
+- Kullanıcı kaydı ve girişi
+- Öğrenci işlemleri
+- Ders işlemleri
+- Kayıt işlemleri
+- Form validasyonları
+- Error handling
+- Responsive tasarım testleri
+
+### Test Best Practices
+- Her PR için test coverage kontrolü
+- Kritik iş mantığı için kapsamlı testler
+- Mock ve stub kullanımı
+- Test verilerinin izolasyonu
+- Anlamlı test isimlendirmesi
+- Test dokümantasyonu
+
+### CI/CD Test Pipeline
+- GitHub Actions ile otomatik test çalıştırma
+- PR'larda test kontrolü
+- Coverage raporlama
+- Lint ve format kontrolü
 
 ## 📝 API Dokümantasyonu
 

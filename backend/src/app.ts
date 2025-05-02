@@ -35,8 +35,10 @@ app.get('/api/health', (req: Request, res: Response) => {
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
-// MongoDB'ye bağlan
-connectDB();
+// MongoDB'ye bağlan (test ortamında değilse)
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // Route'ları tanımla
 app.use('/api/auth', authRoutes);
